@@ -120,10 +120,10 @@ func (d *customDelegate) Render(w io.Writer, m list.Model, index int, listItem l
 
 	if index == m.Index() {
 		// Selected item style
-		fmt.Fprintf(w, selectedItemStyle.Render("> "+title+"\n  "+desc))
+		fmt.Fprintf(w, "%s", selectedItemStyle.Render("> "+title+"\n  "+desc))
 	} else {
 		// Normal item style
-		fmt.Fprintf(w, itemStyle.Render("  "+title+"\n  "+desc))
+		fmt.Fprintf(w, "%s", itemStyle.Render("  "+title+"\n  "+desc))
 	}
 }
 
