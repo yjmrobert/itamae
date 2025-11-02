@@ -24,3 +24,7 @@ Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` d
 ## Under the Hood
 
 The TUI is built using the [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea) library. The shell scripts are embedded into the Go binary using `go:embed`.
+
+## Contributing
+
+Contributions are welcome! Please see the [Developer Guide](DEVELOPERS.md) for instructions on how to add a new tool.
