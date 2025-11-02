@@ -3,7 +3,7 @@
 # METADATA
 # NAME: ripgrep (rg)
 # OMAKASE: true
-# DESCRIPTION: A fast, modern replacement for grep.
+# DESCRIPTION: A fast, modern replacement for grep that respects .gitignore.
 #
 
 install() {
@@ -24,14 +24,7 @@ remove() {
 
 # --- ROUTER ---
 case "$1" in
-    install)
-        install
-        ;;
-    remove)
-        remove
-        ;;
-    *)
-        echo "Usage: $0 {install|remove}"
-        exit 1
-        ;;
+    install) install ;;
+    remove) remove ;;
+    *) echo "Usage: $0 {install|remove}" && exit 1 ;;
 esac

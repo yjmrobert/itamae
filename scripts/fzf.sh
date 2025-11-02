@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# METADATA
+# NAME: fzf
+# OMAKASE: true
+# DESCRIPTION: A command-line fuzzy finder.
+#
+
+install() {
+    echo "Installing fzf..."
+    if command -v nala &> /dev/null; then
+        sudo nala install -y fzf
+    else
+        sudo apt-get install -y fzf
+    fi
+    echo "✅ fzf installed."
+}
+
+remove() {
+    echo "Removing fzf..."
+    sudo apt-get purge -y fzf
+    echo "✅ fzf removed."
+}
+
+# --- ROUTER ---
+case "$1" in
+    install) install ;;
+    remove) remove ;;
+    *) echo "Usage: $0 {install|remove}" && exit 1 ;;
+esac

@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# METADATA
+# NAME: Zsh
+# OMAKASE: true
+# DESCRIPTION: The Z Shell, a powerful foundation for the terminal.
+#
+
+install() {
+    echo "Installing Zsh..."
+    if command -v nala &> /dev/null; then
+        sudo nala install -y zsh
+    else
+        sudo apt-get install -y zsh
+    fi
+    echo "✅ Zsh installed."
+    echo "Run 'chsh -s $(which zsh)' to make it your default."
+}
+
+remove() {
+    echo "Removing Zsh..."
+    sudo apt-get purge -y zsh
+    echo "✅ Zsh removed."
+}
+
+# --- ROUTER ---
+case "$1" in
+    install) install ;;
+    remove) remove ;;
+    *) echo "Usage: $0 {install|remove}" && exit 1 ;;
+esac
