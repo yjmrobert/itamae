@@ -3,22 +3,18 @@
 # METADATA
 # NAME: Atuin
 # OMAKASE: true
-# DESCRIPTION: Magical shell history, synced across machines.
+# DESCRIPTION: A better shell history.
 #
 
 install() {
     echo "Installing Atuin..."
-    # Atuin is best installed from its own script
-    bash -c "$(curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh)"
-    echo "✅ Atuin installed."
-    echo "NOTE: You must add 'eval \"$(atuin init zsh)\"' to your .zshrc"
+    curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash
 }
 
 remove() {
     echo "Removing Atuin..."
-    # The script provides an uninstall
-    bash -c "$(curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh)" -- --uninstall
-    echo "✅ Atuin removed."
+    # As of 2024-05-21, the Atuin installer supports an uninstall command.
+    curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash -s -- --uninstall
 }
 
 # --- ROUTER ---
