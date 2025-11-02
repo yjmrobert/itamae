@@ -12,11 +12,13 @@ install() {
     echo "Please download the binary from: https://github.com/ghostty-org/ghostty"
     echo "This is a placeholder for a future automated script."
     # A real script would curl the .deb
+    mkdir -p "$HOME/.local/bin"
 }
 
 remove() {
     echo "Removing Ghostty..."
     echo "Please remove the binary manually."
+    rm -f "$HOME/.local/bin/ghostty"
 }
 
 # --- ROUTER ---

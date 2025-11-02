@@ -23,8 +23,7 @@ remove() {
 }
 
 # --- ROUTER ---
-case
- "$1" in
+case "$1" in
     install) install ;;
     remove) remove ;;
     *) echo "Usage: $0 {install|remove}" && exit 1 ;;

@@ -1,22 +1,23 @@
 #!/bin/bash
 #
 # METADATA
-# NAME: Chezmoi
-# OMAKASE: false
-# DESCRIPTION: The powerful, template-driven dotfile manager.
+# NAME: chezmoi
+# OMAKASE: true
+# DESCRIPTION: Manages dotfiles across multiple machines.
 #
 
+BINDIR="$HOME/.local/bin"
+
 install() {
-    echo "Installing Chezmoi..."
-    local BINDIR="$HOME/.local/bin"
+    echo "Installing chezmoi..."
+    # Install from get.chezmoi.io
     sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$BINDIR"
-    echo "✅ Chezmoi installed to $BINDIR"
 }
 
 remove() {
-    echo "Removing Chezmoi..."
+    echo "Removing chezmoi..."
+    # The installation script places the binary in ~/.local/bin
     rm "$HOME/.local/bin/chezmoi"
-    echo "✅ Chezmoi removed."
 }
 
 # --- ROUTER ---
