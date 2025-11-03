@@ -15,7 +15,7 @@ install() {
 
 remove() {
     echo "Removing zoxide..."
-    sudo rm /usr/local/bin/zoxide
+    rm "$HOME/.local/bin/zoxide"
     echo "✅ zoxide removed."
 }
 

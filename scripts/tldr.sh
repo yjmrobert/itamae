@@ -9,20 +9,15 @@
 install() {
     echo "Installing tldr (tealdeer)..."
     # 'tealdeer' is the fast Rust client
-    if command -v nala &> /dev/null; then
-        sudo nala install -y tealdeer
-    else
-        sudo apt-get install -y tealdeer
-    fi
-    # Link 'tldr' to 'tldr'
+    local TLDR_URL="https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-x86_64-musl"
     mkdir -p "$HOME/.local/bin"
-    ln -s "$(command -v tldr)" "$HOME/.local/bin/tldr"
-    echo "✅ tldr installed and linked to ~/.local/bin/tldr"
+    curl -L "$TLDR_URL" -o "$HOME/.local/bin/tldr"
+    chmod +x "$HOME/.local/bin/tldr"
+    echo "✅ tldr installed to ~/.local/bin/tldr"
 }
 
 remove() {
     echo "Removing tldr..."
-    sudo apt-get purge -y tealdeer
     rm "$HOME/.local/bin/tldr"
     echo "✅ tldr removed."
 }
