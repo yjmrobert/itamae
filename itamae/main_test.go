@@ -1,4 +1,4 @@
-package main
+package itamae
 
 import (
 	"fmt"
@@ -58,7 +58,7 @@ var pluginAssertions = map[string]pluginAssertion{
 func TestMain(m *testing.M) {
 	var cleanupPlugins func()
 	var err error
-	plugins, cleanupPlugins, err = loadPlugins()
+	plugins, cleanupPlugins, err = LoadPlugins()
 	if err != nil {
 		fmt.Printf("Failed to load plugins in TestMain: %v\n", err)
 		os.Exit(1)
@@ -160,11 +160,11 @@ func TestInstall(t *testing.T) {
 	}
 }
 
-// TestRemove runs the remove command for every plugin.
-func TestRemove(t *testing.T) {
+// TestUninstall runs the uninstall command for every plugin.
+func TestUninstall(t *testing.T) {
 	for _, plugin := range plugins {
 		plugin := plugin
-		t.Run(fmt.Sprintf("remove_%s", plugin.ID), func(t *testing.T) {
+		t.Run(fmt.Sprintf("uninstall_%s", plugin.ID), func(t *testing.T) {
 			assertion, ok := pluginAssertions[plugin.ID]
 			if !ok {
 				t.Skip("No assertion defined for this plugin.")

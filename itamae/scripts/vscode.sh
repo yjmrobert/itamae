@@ -21,9 +21,14 @@ remove() {
     sudo apt-get purge -y code
 }
 
+check() {
+    command -v code &> /dev/null
+}
+
 # --- ROUTER ---
 case "$1" in
     install) install ;;
     remove) remove ;;
-    *) echo "Usage: $0 {install|remove}" && exit 1 ;;
+    check) check ;;
+    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
 esac
