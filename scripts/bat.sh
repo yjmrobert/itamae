@@ -10,9 +10,9 @@ install() {
     echo "Installing bat..."
     # Debian/Ubuntu package it as 'batcat'
     if command -v nala &> /dev/null; then
-        sudo nala install -y bat
+        sudo nala install -y batcat
     else
-        sudo apt-get install -y bat
+        sudo apt-get install -y batcat
     fi
     # Create the 'bat' symlink that all tools expect
     mkdir -p "$HOME/.local/bin"
@@ -22,7 +22,7 @@ install() {
 
 remove() {
     echo "Removing bat..."
-    sudo apt-get purge -y bat
+    sudo apt-get purge -y batcat
     rm "$HOME/.local/bin/bat"
     echo "✅ bat removed."
 }
