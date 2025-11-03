@@ -1,4 +1,4 @@
-package main
+package itamae
 
 import (
 	"fmt"
@@ -127,7 +127,7 @@ func (d *customDelegate) Render(w io.Writer, m list.Model, index int, listItem l
 	}
 }
 
-func runTUI(plugins []ToolPlugin, title string) ([]ToolPlugin, error) {
+func RunTUI(plugins []ToolPlugin, title string) ([]ToolPlugin, error) {
 	m := newModel(plugins, title)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 

@@ -2,13 +2,22 @@
 
 Itamae is a command-line tool written in Go that sets up a developer's Linux workstation. It uses a plugin-based architecture to install and manage software.
 
-## Modes
+## Installation
 
-Itamae has three modes:
+To install Itamae, you can use the following command:
 
-*   **Omakase (Default):** Run `go run .` to install a pre-selected set of essential software.
-*   **Customize:** Run `go run . customize` to choose which software to install from a list of available plugins.
-*   **Remove:** Run `go run . remove` to choose which software to remove.
+```bash
+go install github.com/itamae-cli/itamae@latest
+```
+
+This will install the `itamae` binary in your `$GOPATH/bin` directory. Make sure that this directory is in your `PATH` to run the command from anywhere on your system.
+
+## Commands
+
+Itamae has two commands:
+
+*   **install:** Run `itamae install` to install the core set of software and then choose from a list of additional plugins.
+*   **uninstall:** Run `itamae uninstall` to remove all installed software.
 
 ## Available Plugins
 
@@ -23,7 +32,7 @@ Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` d
 
 ## Under the Hood
 
-The TUI is built using the [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea) library. The shell scripts are embedded into the Go binary using `go:embed`.
+The TUI is built using the [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea) library. The shell scripts are embedded into the Go binary using `go:embed`. The CLI is built using [Cobra](https://github.com/spf13/cobra).
 
 ## Contributing
 

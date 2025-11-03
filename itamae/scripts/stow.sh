@@ -22,9 +22,14 @@ remove() {
     echo "✅ GNU Stow removed."
 }
 
+check() {
+    command -v stow &> /dev/null
+}
+
 # --- ROUTER ---
 case "$1" in
     install) install ;;
     remove) remove ;;
-    *) echo "Usage: $0 {install|remove}" && exit 1 ;;
+    check) check ;;
+    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
 esac
