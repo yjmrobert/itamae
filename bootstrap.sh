@@ -96,7 +96,7 @@ fi
 
 # Install and run itamae
 echo "Installing itamae..."
-go install github.com/itamae-cli/itamae@latest
+go install github.com/yjmrobert/itamae@latest
 
 echo "Running itamae install..."
 itamae install
