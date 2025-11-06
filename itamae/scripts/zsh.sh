@@ -4,6 +4,8 @@
 # NAME: Zsh
 # OMAKASE: true
 # DESCRIPTION: The Z Shell, a powerful foundation for the terminal.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: zsh
 #
 
 install() {

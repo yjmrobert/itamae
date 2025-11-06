@@ -17,26 +17,51 @@ import (
 var scriptsFS embed.FS
 
 type ToolPlugin struct {
-	ID          string // "vscode", "ripgrep"
-	Name        string // "Visual Studio Code"
-	Description string
-	Omakase     bool
-	ScriptPath  string // The path to the executable in the /tmp/ directory
+	ID            string // "vscode", "ripgrep"
+	Name          string // "Visual Studio Code"
+	Description   string
+	Omakase       bool
+	ScriptPath    string // The path to the executable in the /tmp/ directory
+	InstallMethod string // "apt", "binary", "manual"
+	PackageName   string // For apt packages, the actual package name
+	PostInstall   string // Function name for post-install tasks (optional)
 }
 
 func RunInstall(plugins []ToolPlugin) {
 	fmt.Println("Starting Itamae setup...")
 
-	// Install all Omakase plugins
-	fmt.Println("--- Installing core plugins ---")
+	// Separate Omakase plugins by install method
+	aptPlugins := []ToolPlugin{}
+	otherPlugins := []ToolPlugin{}
+
 	for _, p := range plugins {
 		if p.Omakase {
-			fmt.Printf("--- Installing %s ---\n", p.Name)
-			if err := executeScript(p, "install"); err != nil {
-				fmt.Printf("Error installing %s: %v\n", p.Name, err)
+			if p.InstallMethod == "apt" {
+				aptPlugins = append(aptPlugins, p)
+			} else {
+				otherPlugins = append(otherPlugins, p)
 			}
 		}
 	}
+
+	// Install all Omakase plugins
+	fmt.Println("--- Installing core plugins ---")
+
+	// Batch install APT packages
+	if len(aptPlugins) > 0 {
+		if err := batchInstallApt(aptPlugins); err != nil {
+			fmt.Printf("Error in batch APT installation: %v\n", err)
+		}
+	}
+
+	// Install other plugins individually
+	for _, p := range otherPlugins {
+		fmt.Printf("--- Installing %s ---\n", p.Name)
+		if err := executeScript(p, "install"); err != nil {
+			fmt.Printf("Error installing %s: %v\n", p.Name, err)
+		}
+	}
+
 	fmt.Println("Core plugins installed.")
 
 	// Configure Git
@@ -64,8 +89,29 @@ func RunInstall(plugins []ToolPlugin) {
 		return
 	}
 
-	fmt.Println("Installing selected plugins...")
+	// Separate selected plugins by install method
+	selectedAptPlugins := []ToolPlugin{}
+	selectedOtherPlugins := []ToolPlugin{}
+
 	for _, p := range selected {
+		if p.InstallMethod == "apt" {
+			selectedAptPlugins = append(selectedAptPlugins, p)
+		} else {
+			selectedOtherPlugins = append(selectedOtherPlugins, p)
+		}
+	}
+
+	fmt.Println("Installing selected plugins...")
+
+	// Batch install selected APT packages
+	if len(selectedAptPlugins) > 0 {
+		if err := batchInstallApt(selectedAptPlugins); err != nil {
+			fmt.Printf("Error in batch APT installation: %v\n", err)
+		}
+	}
+
+	// Install other selected plugins individually
+	for _, p := range selectedOtherPlugins {
 		fmt.Printf("--- Installing %s ---\n", p.Name)
 		if err := executeScript(p, "install"); err != nil {
 			fmt.Printf("Error installing %s: %v\n", p.Name, err)
@@ -211,6 +257,12 @@ func parseMetadata(content string) (ToolPlugin, error) {
 			plugin.Omakase = (value == "true")
 		case "DESCRIPTION":
 			plugin.Description = value
+		case "INSTALL_METHOD":
+			plugin.InstallMethod = value
+		case "PACKAGE_NAME":
+			plugin.PackageName = value
+		case "POST_INSTALL":
+			plugin.PostInstall = value
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -238,5 +290,67 @@ func configureGit() error {
 	}
 
 	fmt.Println("✅ Git configured.")
+	return nil
+}
+
+// batchInstallApt installs multiple APT packages in a single command using nala or apt-get.
+// After installation, it runs any post-install tasks defined for each plugin.
+func batchInstallApt(plugins []ToolPlugin) error {
+	if len(plugins) == 0 {
+		return nil
+	}
+
+	fmt.Println("--- Batch installing APT packages ---")
+
+	// Check if nala is available
+	useNala := exec.Command("command", "-v", "nala").Run() == nil
+
+	// Collect package names
+	packages := []string{}
+	for _, p := range plugins {
+		if p.PackageName != "" {
+			packages = append(packages, p.PackageName)
+			fmt.Printf("  - %s (%s)\n", p.Name, p.PackageName)
+		}
+	}
+
+	if len(packages) == 0 {
+		fmt.Println("No APT packages to install.")
+		return nil
+	}
+
+	// Build install command
+	var cmd *exec.Cmd
+	if useNala {
+		args := append([]string{"nala", "install", "-y"}, packages...)
+		cmd = exec.Command("sudo", args...)
+		fmt.Printf("Running: sudo nala install -y %s\n", strings.Join(packages, " "))
+	} else {
+		args := append([]string{"apt-get", "install", "-y"}, packages...)
+		cmd = exec.Command("sudo", args...)
+		fmt.Printf("Running: sudo apt-get install -y %s\n", strings.Join(packages, " "))
+	}
+
+	// Execute with live output
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("batch APT installation failed: %w", err)
+	}
+
+	fmt.Println("✅ Batch APT installation complete.")
+
+	// Run post-install tasks
+	for _, p := range plugins {
+		if p.PostInstall != "" {
+			fmt.Printf("Running post-install for %s...\n", p.Name)
+			if err := executeScript(p, "post_install"); err != nil {
+				fmt.Printf("⚠️  Warning: post-install for %s failed: %v\n", p.Name, err)
+			}
+		}
+	}
+
 	return nil
 }

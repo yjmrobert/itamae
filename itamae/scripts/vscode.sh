@@ -4,6 +4,7 @@
 # NAME: Visual Studio Code
 # OMAKASE: true
 # DESCRIPTION: A popular code editor.
+# INSTALL_METHOD: binary
 #
 
 install() {

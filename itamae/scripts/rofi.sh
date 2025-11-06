@@ -4,6 +4,8 @@
 # NAME: Rofi
 # OMAKASE: false
 # DESCRIPTION: A fast, keyboard-driven application launcher for WMs.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: rofi
 #
 
 install() {

@@ -4,7 +4,17 @@
 # NAME: fd (fd-find)
 # OMAKASE: true
 # DESCRIPTION: A fast and user-friendly alternative to 'find'.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: fd-find
+# POST_INSTALL: post_install
 #
+
+post_install() {
+    # Create the 'fd' symlink that all tools expect
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+    echo "✅ Created symlink: fd -> fdfind"
+}
 
 install() {
     echo "Installing fd..."
@@ -14,15 +24,13 @@ install() {
     else
         sudo apt-get install -y fd-find
     fi
-    # Create the 'fd' symlink that all tools expect
-    ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
-    echo "✅ fd installed and linked to ~/.local/bin/fd"
+    post_install
 }
 
 remove() {
     echo "Removing fd..."
     sudo apt-get purge -y fd-find
-    rm "$HOME/.local/bin/fd"
+    rm -f "$HOME/.local/bin/fd"
     echo "✅ fd removed."
 }
 
@@ -35,5 +43,6 @@ case "$1" in
     install) install ;;
     remove) remove ;;
     check) check ;;
-    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
+    post_install) post_install ;;
+    *) echo "Usage: $0 {install|remove|check|post_install}" && exit 1 ;;
 esac

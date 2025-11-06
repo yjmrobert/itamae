@@ -4,6 +4,8 @@
 # NAME: Flameshot
 # OMAKASE: false
 # DESCRIPTION: A powerful, scriptable screenshot tool.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: flameshot
 #
 
 install() {

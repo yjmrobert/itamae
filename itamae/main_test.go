@@ -37,6 +37,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"flameshot": {install: "sudo nala install -y flameshot", remove: "sudo apt-get purge -y flameshot"},
 	"fzf":       {install: "sudo nala install -y fzf", remove: "sudo apt-get purge -y fzf"},
 	"ghostty":   {install: "mkdir -p", remove: "rm -f"},
+	"git":       {install: "sudo nala install -y git", remove: "sudo apt-get purge -y git"},
 	"httpie":    {install: "sudo nala install -y httpie", remove: "sudo apt-get purge -y httpie"},
 	"jq":        {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
 	"lsd":       {install: "sudo nala install -y lsd", remove: "sudo apt-get purge -y lsd"},
@@ -172,4 +173,141 @@ func TestUninstall(t *testing.T) {
 			runPluginTest(t, plugin, "remove", assertion.remove)
 		})
 	}
+}
+
+// TestMetadataParsing verifies that all plugins have the new metadata fields set correctly.
+func TestMetadataParsing(t *testing.T) {
+	expectedInstallMethods := map[string]string{
+		"atuin":     "binary",
+		"bat":       "apt",
+		"btop":      "apt",
+		"chezmoi":   "binary",
+		"dunst":     "apt",
+		"fd":        "apt",
+		"flameshot": "apt",
+		"fzf":       "apt",
+		"ghostty":   "manual",
+		"git":       "apt",
+		"httpie":    "apt",
+		"jq":        "apt",
+		"lsd":       "apt",
+		"pass":      "apt",
+		"polybar":   "apt",
+		"ripgrep":   "apt",
+		"rofi":      "apt",
+		"starship":  "binary",
+		"stow":      "apt",
+		"tldr":      "binary",
+		"vscode":    "binary",
+		"yq":        "binary",
+		"zellij":    "binary",
+		"zoxide":    "binary",
+		"zsh":       "apt",
+	}
+
+	expectedPackageNames := map[string]string{
+		"bat":       "batcat",
+		"btop":      "btop",
+		"dunst":     "dunst",
+		"fd":        "fd-find",
+		"flameshot": "flameshot",
+		"fzf":       "fzf",
+		"git":       "git",
+		"httpie":    "httpie",
+		"jq":        "jq",
+		"lsd":       "lsd",
+		"pass":      "pass",
+		"polybar":   "polybar",
+		"ripgrep":   "ripgrep",
+		"rofi":      "rofi",
+		"stow":      "stow",
+		"zsh":       "zsh",
+	}
+
+	expectedPostInstall := map[string]string{
+		"bat": "post_install",
+		"fd":  "post_install",
+	}
+
+	for _, plugin := range plugins {
+		plugin := plugin
+		t.Run(fmt.Sprintf("metadata_%s", plugin.ID), func(t *testing.T) {
+			// Check InstallMethod
+			expectedMethod, ok := expectedInstallMethods[plugin.ID]
+			if !ok {
+				t.Errorf("Plugin '%s' has no expected install method defined in test", plugin.ID)
+				return
+			}
+			if plugin.InstallMethod != expectedMethod {
+				t.Errorf("Plugin '%s': expected InstallMethod='%s', got '%s'", plugin.ID, expectedMethod, plugin.InstallMethod)
+			}
+
+			// Check PackageName for APT plugins
+			if plugin.InstallMethod == "apt" {
+				expectedPkg, ok := expectedPackageNames[plugin.ID]
+				if !ok {
+					t.Errorf("Plugin '%s' is APT-based but has no expected package name defined in test", plugin.ID)
+				} else if plugin.PackageName != expectedPkg {
+					t.Errorf("Plugin '%s': expected PackageName='%s', got '%s'", plugin.ID, expectedPkg, plugin.PackageName)
+				}
+			}
+
+			// Check PostInstall for plugins that need it
+			if expectedPost, ok := expectedPostInstall[plugin.ID]; ok {
+				if plugin.PostInstall != expectedPost {
+					t.Errorf("Plugin '%s': expected PostInstall='%s', got '%s'", plugin.ID, expectedPost, plugin.PostInstall)
+				}
+			}
+		})
+	}
+}
+
+// TestBatchInstallSeparation verifies that plugins are correctly separated by install method.
+func TestBatchInstallSeparation(t *testing.T) {
+	aptPlugins := []ToolPlugin{}
+	binaryPlugins := []ToolPlugin{}
+	manualPlugins := []ToolPlugin{}
+
+	for _, p := range plugins {
+		if p.Omakase {
+			switch p.InstallMethod {
+			case "apt":
+				aptPlugins = append(aptPlugins, p)
+			case "binary":
+				binaryPlugins = append(binaryPlugins, p)
+			case "manual":
+				manualPlugins = append(manualPlugins, p)
+			}
+		}
+	}
+
+	// Expected counts for Omakase plugins
+	// APT: bat, btop, fd, fzf, git, httpie, jq, lsd, pass, ripgrep, stow, zsh = 12
+	expectedAptCount := 12
+	// Binary: atuin, chezmoi, starship, tldr, vscode, yq, zellij, zoxide = 8
+	expectedBinaryCount := 8
+
+	if len(aptPlugins) != expectedAptCount {
+		t.Errorf("Expected %d Omakase APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))
+	}
+
+	if len(binaryPlugins) != expectedBinaryCount {
+		t.Errorf("Expected %d Omakase binary plugins, got %d: %v", expectedBinaryCount, len(binaryPlugins), getPluginNames(binaryPlugins))
+	}
+
+	// Verify all APT plugins have package names
+	for _, p := range aptPlugins {
+		if p.PackageName == "" {
+			t.Errorf("APT plugin '%s' is missing PackageName", p.ID)
+		}
+	}
+}
+
+// Helper function to get plugin names for debugging
+func getPluginNames(plugins []ToolPlugin) []string {
+	names := make([]string, len(plugins))
+	for i, p := range plugins {
+		names[i] = p.ID
+	}
+	return names
 }

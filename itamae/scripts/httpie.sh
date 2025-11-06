@@ -4,6 +4,8 @@
 # NAME: httpie
 # OMAKASE: true
 # DESCRIPTION: A human-friendly 'curl' replacement for testing APIs.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: httpie
 #
 
 install() {

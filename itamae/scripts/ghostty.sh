@@ -4,6 +4,7 @@
 # NAME: Ghostty
 # OMAKASE: false
 # DESCRIPTION: A GPU-accelerated terminal emulator.
+# INSTALL_METHOD: manual
 #
 
 install() {

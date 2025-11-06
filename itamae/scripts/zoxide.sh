@@ -4,6 +4,7 @@
 # NAME: zoxide
 # OMAKASE: true
 # DESCRIPTION: A smarter 'cd' command that remembers your directories.
+# INSTALL_METHOD: binary
 #
 
 install() {
