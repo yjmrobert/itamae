@@ -86,3 +86,28 @@ The interactive forms are built using the [Charm Huh](https://github.com/charmbr
 ## Contributing
 
 Contributions are welcome! Please see the [Developer Guide](DEVELOPERS.md) for instructions on how to add a new tool.
+
+### Commit Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated version management:
+
+- `feat:` - New feature (minor version bump)
+- `fix:` - Bug fix (patch version bump)  
+- `feat!:` or `BREAKING CHANGE:` - Breaking change (major version bump)
+- `docs:`, `chore:`, `style:`, `refactor:`, `test:` - Other changes (patch version bump)
+
+Example:
+```bash
+git commit -m "feat: add support for Neovim plugin"
+git commit -m "fix: resolve path issue in zsh script"
+```
+
+### Creating a Release
+
+See [RELEASE.md](RELEASE.md) for detailed release instructions. Quick version:
+
+```bash
+./release.sh
+```
+
+This will automatically analyze commits, determine the version bump, run tests, and create a release.
