@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"itamae/itamae"
+	"github.com/yjmrobert/itamae/itamae"
 
 	"github.com/spf13/cobra"
 )

@@ -1,4 +1,4 @@
-module itamae
+module github.com/yjmrobert/itamae
 
 go 1.24.3
 

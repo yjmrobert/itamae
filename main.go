@@ -1,7 +1,7 @@
 package main
 
 import (
-	"itamae/cmd"
+	"github.com/yjmrobert/itamae/cmd"
 )
 
 func main() {

@@ -86,7 +86,8 @@ if [ -n "$SHELL_CONFIG" ] && [ -f "$SHELL_CONFIG" ]; then
   if ! grep -q "/usr/local/go/bin" "$SHELL_CONFIG"; then
     echo -e "\n# Go and Itamae PATH" >> "$SHELL_CONFIG"
     echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> "$SHELL_CONFIG"
-    echo "Updated PATH in $SHELL_CONFIG. Please restart your shell or run 'source $SHELL_CONFIG' to use 'itamae' in the future."
+    echo "Updated PATH in $SHELL_CONFIG. Sourcing the file now to apply changes."
+    source "$SHELL_CONFIG"
   else
     echo "Go path is already in your shell config."
   fi
