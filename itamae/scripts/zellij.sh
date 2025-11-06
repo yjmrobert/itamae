@@ -4,6 +4,7 @@
 # NAME: Zellij
 # OMAKASE: true
 # DESCRIPTION: A modern terminal multiplexer (like tmux/screen).
+# INSTALL_METHOD: binary
 #
 
 install() {

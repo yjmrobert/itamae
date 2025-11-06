@@ -4,6 +4,8 @@
 # NAME: fzf
 # OMAKASE: true
 # DESCRIPTION: A command-line fuzzy finder.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: fzf
 #
 
 install() {

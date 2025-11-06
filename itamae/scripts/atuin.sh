@@ -4,6 +4,7 @@
 # NAME: Atuin
 # OMAKASE: true
 # DESCRIPTION: A better shell history.
+# INSTALL_METHOD: binary
 #
 
 install() {

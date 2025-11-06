@@ -4,6 +4,7 @@
 # NAME: yq (Go)
 # OMAKASE: true
 # DESCRIPTION: A 'jq' for YAML. (Installs the correct Go binary, not the python wrapper).
+# INSTALL_METHOD: binary
 #
 
 install() {

@@ -4,6 +4,7 @@
 # NAME: chezmoi
 # OMAKASE: true
 # DESCRIPTION: Manages dotfiles across multiple machines.
+# INSTALL_METHOD: binary
 #
 
 BINDIR="$HOME/.local/bin"

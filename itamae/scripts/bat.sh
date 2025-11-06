@@ -4,7 +4,17 @@
 # NAME: bat (batcat)
 # OMAKASE: true
 # DESCRIPTION: A 'cat' clone with syntax highlighting and Git integration.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: batcat
+# POST_INSTALL: post_install
 #
+
+post_install() {
+    # Create the 'bat' symlink that all tools expect
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+    echo "✅ Created symlink: bat -> batcat"
+}
 
 install() {
     echo "Installing bat..."
@@ -14,16 +24,13 @@ install() {
     else
         sudo apt-get install -y batcat
     fi
-    # Create the 'bat' symlink that all tools expect
-    mkdir -p "$HOME/.local/bin"
-    ln -s "$(command -v batcat)" "$HOME/.local/bin/bat"
-    echo "✅ bat installed and linked to ~/.local/bin/bat"
+    post_install
 }
 
 remove() {
     echo "Removing bat..."
     sudo apt-get purge -y batcat
-    rm "$HOME/.local/bin/bat"
+    rm -f "$HOME/.local/bin/bat"
     echo "✅ bat removed."
 }
 
@@ -36,5 +43,6 @@ case "$1" in
     install) install ;;
     remove) remove ;;
     check) check ;;
-    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
+    post_install) post_install ;;
+    *) echo "Usage: $0 {install|remove|check|post_install}" && exit 1 ;;
 esac

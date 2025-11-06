@@ -4,6 +4,8 @@
 # NAME: GNU Stow
 # OMAKASE: true
 # DESCRIPTION: A simple symlink manager for dotfiles.
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: stow
 #
 
 install() {
