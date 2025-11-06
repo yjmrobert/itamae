@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/charmbracelet/huh"
 )
 
 //go:embed scripts/*
@@ -30,95 +32,280 @@ type ToolPlugin struct {
 func RunInstall(plugins []ToolPlugin) {
 	fmt.Println("Starting Itamae setup...")
 
-	// Separate Omakase plugins by install method
-	aptPlugins := []ToolPlugin{}
-	otherPlugins := []ToolPlugin{}
+	// Separate Omakase and Optional plugins
+	omakasePlugins := []ToolPlugin{}
+	optionalPlugins := []ToolPlugin{}
 
 	for _, p := range plugins {
 		if p.Omakase {
-			if p.InstallMethod == "apt" {
-				aptPlugins = append(aptPlugins, p)
-			} else {
-				otherPlugins = append(otherPlugins, p)
+			omakasePlugins = append(omakasePlugins, p)
+		} else {
+			optionalPlugins = append(optionalPlugins, p)
+		}
+	}
+
+	// Get user selections for optional plugins
+	selectedOptional := selectOptionalPlugins(optionalPlugins)
+
+	// Combine Omakase + User-selected
+	allSelectedPlugins := append(omakasePlugins, selectedOptional...)
+
+	// Group by installation method
+	aptPlugins := []ToolPlugin{}
+	binaryPlugins := []ToolPlugin{}
+	manualPlugins := []ToolPlugin{}
+
+	for _, p := range allSelectedPlugins {
+		switch p.InstallMethod {
+		case "apt":
+			aptPlugins = append(aptPlugins, p)
+		case "binary":
+			binaryPlugins = append(binaryPlugins, p)
+		case "manual":
+			manualPlugins = append(manualPlugins, p)
+		}
+	}
+
+	// Display installation plan
+	displayInstallationPlan(aptPlugins, binaryPlugins, manualPlugins)
+
+	// Confirm before proceeding
+	if !confirmInstallation() {
+		fmt.Println("Installation cancelled.")
+		return
+	}
+
+	// Track success/failure
+	successful := []string{}
+	failed := []string{}
+
+	// Phase 1: Batch install all APT packages
+	if len(aptPlugins) > 0 {
+		fmt.Println("\n" + strings.Repeat("=", 60))
+		fmt.Println("=== Phase 1: Installing APT packages ===")
+		fmt.Println(strings.Repeat("=", 60))
+		if err := batchInstallApt(aptPlugins); err != nil {
+			fmt.Printf("❌ Error in batch APT installation: %v\n", err)
+			for _, p := range aptPlugins {
+				failed = append(failed, p.Name)
+			}
+		} else {
+			for _, p := range aptPlugins {
+				successful = append(successful, p.Name)
 			}
 		}
 	}
 
-	// Install all Omakase plugins
-	fmt.Println("--- Installing core plugins ---")
-
-	// Batch install APT packages
-	if len(aptPlugins) > 0 {
-		if err := batchInstallApt(aptPlugins); err != nil {
-			fmt.Printf("Error in batch APT installation: %v\n", err)
-		}
-	}
-
-	// Install other plugins individually
-	for _, p := range otherPlugins {
-		fmt.Printf("--- Installing %s ---\n", p.Name)
-		if err := executeScript(p, "install"); err != nil {
-			fmt.Printf("Error installing %s: %v\n", p.Name, err)
-		}
-	}
-
-	fmt.Println("Core plugins installed.")
-
 	// Configure Git
 	if err := configureGit(); err != nil {
-		fmt.Printf("Error configuring Git: %v\n", err)
+		fmt.Printf("⚠️  Error configuring Git: %v\n", err)
 	}
 
-	// Prompt user for a la carte plugins
-	fmt.Println("--- Select a la carte plugins ---")
-	aLaCartePlugins := []ToolPlugin{}
+	// Phase 2: Install binary plugins individually
+	if len(binaryPlugins) > 0 {
+		fmt.Println("\n" + strings.Repeat("=", 60))
+		fmt.Println("=== Phase 2: Installing binary packages ===")
+		fmt.Println(strings.Repeat("=", 60))
+		for _, p := range binaryPlugins {
+			fmt.Printf("\n--- Installing %s ---\n", p.Name)
+			if err := executeScript(p, "install"); err != nil {
+				fmt.Printf("❌ Error installing %s: %v\n", p.Name, err)
+				failed = append(failed, p.Name)
+			} else {
+				successful = append(successful, p.Name)
+			}
+		}
+	}
+
+	// Phase 3: Install manual plugins individually
+	if len(manualPlugins) > 0 {
+		fmt.Println("\n" + strings.Repeat("=", 60))
+		fmt.Println("=== Phase 3: Manual installation required ===")
+		fmt.Println(strings.Repeat("=", 60))
+		for _, p := range manualPlugins {
+			fmt.Printf("\n--- %s ---\n", p.Name)
+			if err := executeScript(p, "install"); err != nil {
+				fmt.Printf("❌ Error installing %s: %v\n", p.Name, err)
+				failed = append(failed, p.Name)
+			} else {
+				successful = append(successful, p.Name)
+			}
+		}
+	}
+
+	// Display summary
+	displayInstallationSummary(successful, failed)
+
+	fmt.Println("\n✅ Itamae setup complete!")
+}
+
+func selectOptionalPlugins(plugins []ToolPlugin) []ToolPlugin {
+	if len(plugins) == 0 {
+		return []ToolPlugin{}
+	}
+
+	fmt.Println("\n🍱 Core tools will be installed automatically (Omakase).")
+	fmt.Println("📦 Select additional tools you'd like to install:")
+
+	// Create options for multi-select
+	options := []huh.Option[string]{}
 	for _, p := range plugins {
-		if !p.Omakase {
-			aLaCartePlugins = append(aLaCartePlugins, p)
-		}
+		// Format: "Tool Name - Description"
+		label := fmt.Sprintf("%s - %s", p.Name, p.Description)
+		options = append(options, huh.NewOption(label, p.ID))
 	}
 
-	selected, err := RunTUI(aLaCartePlugins, "Itamae - À La Carte Setup")
+	var selectedIDs []string
+
+	// Create multi-select form
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Title("Additional Tools").
+				Description("Use space to select, enter to confirm").
+				Options(options...).
+				Value(&selectedIDs).
+				Height(15),
+		),
+	)
+
+	// Run the form
+	err := form.Run()
 	if err != nil {
-		fmt.Printf("Error running TUI: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("Error: %v\n", err)
+		return []ToolPlugin{}
 	}
 
-	if len(selected) == 0 {
-		fmt.Println("No a la carte plugins selected. Exiting.")
-		return
+	// Convert selected IDs back to plugins
+	selectedPlugins := []ToolPlugin{}
+	selectedMap := make(map[string]bool)
+	for _, id := range selectedIDs {
+		selectedMap[id] = true
 	}
 
-	// Separate selected plugins by install method
-	selectedAptPlugins := []ToolPlugin{}
-	selectedOtherPlugins := []ToolPlugin{}
-
-	for _, p := range selected {
-		if p.InstallMethod == "apt" {
-			selectedAptPlugins = append(selectedAptPlugins, p)
-		} else {
-			selectedOtherPlugins = append(selectedOtherPlugins, p)
+	for _, p := range plugins {
+		if selectedMap[p.ID] {
+			selectedPlugins = append(selectedPlugins, p)
 		}
 	}
 
-	fmt.Println("Installing selected plugins...")
+	return selectedPlugins
+}
 
-	// Batch install selected APT packages
-	if len(selectedAptPlugins) > 0 {
-		if err := batchInstallApt(selectedAptPlugins); err != nil {
-			fmt.Printf("Error in batch APT installation: %v\n", err)
+func displayInstallationPlan(aptPlugins, binaryPlugins, manualPlugins []ToolPlugin) {
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Println("📋 INSTALLATION PLAN")
+	fmt.Println(strings.Repeat("=", 60))
+
+	if len(aptPlugins) > 0 {
+		fmt.Println("\n📦 APT Packages (batch installation):")
+		for _, p := range aptPlugins {
+			marker := "🍱"
+			if !p.Omakase {
+				marker = "📌"
+			}
+			fmt.Printf("  %s %s (%s)\n", marker, p.Name, p.PackageName)
 		}
 	}
 
-	// Install other selected plugins individually
-	for _, p := range selectedOtherPlugins {
-		fmt.Printf("--- Installing %s ---\n", p.Name)
-		if err := executeScript(p, "install"); err != nil {
-			fmt.Printf("Error installing %s: %v\n", p.Name, err)
+	if len(binaryPlugins) > 0 {
+		fmt.Println("\n🔧 Binary Installations (individual):")
+		for _, p := range binaryPlugins {
+			marker := "🍱"
+			if !p.Omakase {
+				marker = "📌"
+			}
+			fmt.Printf("  %s %s\n", marker, p.Name)
 		}
 	}
 
-	fmt.Println("Installation complete.")
+	if len(manualPlugins) > 0 {
+		fmt.Println("\n⚠️  Manual Installations (requires attention):")
+		for _, p := range manualPlugins {
+			fmt.Printf("  ⚙️  %s\n", p.Name)
+		}
+	}
+
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("Total: %d tools\n", len(aptPlugins)+len(binaryPlugins)+len(manualPlugins))
+	fmt.Println(strings.Repeat("=", 60))
+}
+
+func confirmInstallation() bool {
+	var confirm bool
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Proceed with installation?").
+				Description("This will install the selected tools on your system.").
+				Value(&confirm),
+		),
+	)
+
+	err := form.Run()
+	if err != nil {
+		return false
+	}
+
+	return confirm
+}
+
+func displayInstallationSummary(successful, failed []string) {
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Println("📊 INSTALLATION SUMMARY")
+	fmt.Println(strings.Repeat("=", 60))
+
+	if len(successful) > 0 {
+		fmt.Println("\n✅ Successfully installed:")
+		for _, name := range successful {
+			fmt.Printf("  • %s\n", name)
+		}
+	}
+
+	if len(failed) > 0 {
+		fmt.Println("\n❌ Failed to install:")
+		for _, name := range failed {
+			fmt.Printf("  • %s\n", name)
+		}
+	}
+
+	fmt.Println("\n" + strings.Repeat("=", 60))
+}
+
+func countPostInstalls(plugins []ToolPlugin) int {
+	count := 0
+	for _, p := range plugins {
+		if p.PostInstall != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func RunTextInput(question string) (string, error) {
+	var value string
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title(question).
+				Value(&value).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("input cannot be empty")
+					}
+					return nil
+				}),
+		),
+	)
+
+	err := form.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return value, nil
 }
 
 func RunUninstall(plugins []ToolPlugin) {
@@ -272,7 +459,7 @@ func parseMetadata(content string) (ToolPlugin, error) {
 }
 
 func configureGit() error {
-	fmt.Println("--- Configuring Git ---")
+	fmt.Println("\n--- Configuring Git ---")
 	name, err := RunTextInput("Enter your Git user name")
 	if err != nil {
 		return err
@@ -300,7 +487,7 @@ func batchInstallApt(plugins []ToolPlugin) error {
 		return nil
 	}
 
-	fmt.Println("--- Batch installing APT packages ---")
+	fmt.Printf("\n⏳ Installing %d APT packages...\n\n", len(plugins))
 
 	// Check if nala is available
 	useNala := exec.Command("command", "-v", "nala").Run() == nil
@@ -310,7 +497,7 @@ func batchInstallApt(plugins []ToolPlugin) error {
 	for _, p := range plugins {
 		if p.PackageName != "" {
 			packages = append(packages, p.PackageName)
-			fmt.Printf("  - %s (%s)\n", p.Name, p.PackageName)
+			fmt.Printf("  • %s (%s)\n", p.Name, p.PackageName)
 		}
 	}
 
@@ -324,11 +511,11 @@ func batchInstallApt(plugins []ToolPlugin) error {
 	if useNala {
 		args := append([]string{"nala", "install", "-y"}, packages...)
 		cmd = exec.Command("sudo", args...)
-		fmt.Printf("Running: sudo nala install -y %s\n", strings.Join(packages, " "))
+		fmt.Printf("\n▶️  Running: sudo nala install -y %s\n\n", strings.Join(packages, " "))
 	} else {
 		args := append([]string{"apt-get", "install", "-y"}, packages...)
 		cmd = exec.Command("sudo", args...)
-		fmt.Printf("Running: sudo apt-get install -y %s\n", strings.Join(packages, " "))
+		fmt.Printf("\n▶️  Running: sudo apt-get install -y %s\n\n", strings.Join(packages, " "))
 	}
 
 	// Execute with live output
@@ -340,14 +527,19 @@ func batchInstallApt(plugins []ToolPlugin) error {
 		return fmt.Errorf("batch APT installation failed: %w", err)
 	}
 
-	fmt.Println("✅ Batch APT installation complete.")
+	fmt.Printf("\n✅ Successfully installed %d APT packages\n", len(plugins))
 
-	// Run post-install tasks
-	for _, p := range plugins {
-		if p.PostInstall != "" {
-			fmt.Printf("Running post-install for %s...\n", p.Name)
-			if err := executeScript(p, "post_install"); err != nil {
-				fmt.Printf("⚠️  Warning: post-install for %s failed: %v\n", p.Name, err)
+	// Run post-install tasks with progress
+	if hasPostInstall := countPostInstalls(plugins); hasPostInstall > 0 {
+		fmt.Printf("\n⚙️  Running post-installation tasks...\n")
+		for _, p := range plugins {
+			if p.PostInstall != "" {
+				fmt.Printf("  • %s... ", p.Name)
+				if err := executeScript(p, "post_install"); err != nil {
+					fmt.Printf("❌ failed\n")
+				} else {
+					fmt.Printf("✅\n")
+				}
 			}
 		}
 	}
