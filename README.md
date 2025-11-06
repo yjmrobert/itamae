@@ -31,11 +31,22 @@ The following plugins are available:
 
 ## How It Works
 
-Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and uses a terminal user interface (TUI) to let the user choose which plugins to run.
+Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and provides an interactive form interface for selecting optional plugins.
+
+### Installation Process
+
+1. **Interactive Selection:** Choose which additional tools to install using an interactive multi-select form
+2. **Installation Plan:** Review the complete installation plan organized by method (APT, binary, manual)
+3. **Batch Installation:** All APT packages are installed in a single optimized command using `nala` (or `apt-get`)
+4. **Individual Installation:** Binary and manual installations run individually with live progress
+
+### Performance Optimization
+
+Itamae optimizes installation by batching all APT packages into a single command, significantly improving speed and dependency resolution compared to installing packages one-by-one.
 
 ## Under the Hood
 
-The TUI is built using the [Charm Bubble Tea](https://github.com/charmbracelet/bubbletea) library. The shell scripts are embedded into the Go binary using `go:embed`. The CLI is built using [Cobra](https://github.com/spf13/cobra).
+The interactive forms are built using the [Charm Huh](https://github.com/charmbracelet/huh) library. The shell scripts are embedded into the Go binary using `go:embed`. The CLI is built using [Cobra](https://github.com/spf13/cobra).
 
 ## Contributing
 

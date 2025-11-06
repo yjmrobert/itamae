@@ -4,7 +4,7 @@ This guide provides instructions for developers who want to add new tools to Ita
 
 ## How It Works
 
-Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and uses a terminal user interface (TUI) to let the user choose which plugins to run.
+Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and uses interactive forms (built with [Charm Huh](https://github.com/charmbracelet/huh)) to let the user choose which optional plugins to install.
 
 ## Adding a New Plugin
 
