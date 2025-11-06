@@ -4,9 +4,9 @@ Itamae is a command-line tool written in Go that sets up a developer's Linux wor
 
 ## Installation
 
-The easiest way to install Itamae is with the following command, which will download and run the bootstrap script:
+The easiest way to install Itamae is with the following command, which will download and run the install script:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
 ```
 
 Alternatively, if you have Go installed, you can build and install it from source:
