@@ -4,23 +4,58 @@ Itamae is a command-line tool written in Go that sets up a developer's Linux wor
 
 ## Installation
 
+### Quick Install (Latest Version)
+
 The easiest way to install Itamae is with the following command, which will download and run the install script:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
 ```
 
-Alternatively, if you have Go installed, you can build and install it from source:
+### Install Specific Version
+
+You can install a specific version by setting the `ITAMAE_VERSION` environment variable:
 ```bash
+ITAMAE_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
+```
+
+### Install with Go
+
+If you have Go installed, you can install directly:
+```bash
+# Latest version
 go install github.com/yjmrobert/itamae@latest
+
+# Specific version
+go install github.com/yjmrobert/itamae@v1.0.0
 ```
 This will install the `itamae` binary in your `$HOME/go/bin` directory. Make sure that this directory is in your `PATH` to run the command from anywhere on your system.
 
+### Build from Source
+
+For development or customization:
+```bash
+git clone https://github.com/yjmrobert/itamae.git
+cd itamae
+./build.sh
+sudo mv bin/itamae /usr/local/bin/
+```
+
+## Check Version
+
+To check which version of Itamae you have installed:
+```bash
+itamae version
+# or
+itamae --version
+```
+
 ## Commands
 
-Itamae has two commands:
+Itamae has the following commands:
 
 *   **install:** Run `itamae install` to install the core set of software and then choose from a list of additional plugins.
 *   **uninstall:** Run `itamae uninstall` to remove all installed software.
+*   **version:** Run `itamae version` or `itamae --version` to display version information.
 
 ## Available Plugins
 

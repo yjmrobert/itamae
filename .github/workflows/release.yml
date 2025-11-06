@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build with version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          COMMIT=$(git rev-parse --short HEAD)
+          BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          echo "Building version ${VERSION}"
+          
+          # Build for Linux AMD64
+          GOOS=linux GOARCH=amd64 go build -ldflags "\
+            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
+            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
+            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -o itamae-linux-amd64
+          
+          # Build for Linux ARM64
+          GOOS=linux GOARCH=arm64 go build -ldflags "\
+            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
+            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
+            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -o itamae-linux-arm64
+          
+          # Build for macOS AMD64
+          GOOS=darwin GOARCH=amd64 go build -ldflags "\
+            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
+            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
+            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -o itamae-darwin-amd64
+          
+          # Build for macOS ARM64
+          GOOS=darwin GOARCH=arm64 go build -ldflags "\
+            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
+            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
+            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -o itamae-darwin-arm64
+
+      - name: Create checksums
+        run: |
+          sha256sum itamae-* > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            itamae-linux-amd64
+            itamae-linux-arm64
+            itamae-darwin-amd64
+            itamae-darwin-arm64
+            checksums.txt
+          generate_release_notes: true
+          body: |
+            ## Installation
+            
+            Download the appropriate binary for your system:
+            
+            ### Linux (AMD64)
+            ```bash
+            curl -L -o itamae https://github.com/yjmrobert/itamae/releases/download/${{ github.ref_name }}/itamae-linux-amd64
+            chmod +x itamae
+            sudo mv itamae /usr/local/bin/
+            ```
+            
+            ### Linux (ARM64)
+            ```bash
+            curl -L -o itamae https://github.com/yjmrobert/itamae/releases/download/${{ github.ref_name }}/itamae-linux-arm64
+            chmod +x itamae
+            sudo mv itamae /usr/local/bin/
+            ```
+            
+            ### Using install script
+            ```bash
+            ITAMAE_VERSION=${{ github.ref_name }} curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
+            ```

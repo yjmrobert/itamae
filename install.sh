@@ -100,9 +100,21 @@ else
       fi
     fi
 
-    # Install itamae
+    # Install itamae with optional version specification
     echo "Installing itamae..."
-    go install github.com/yjmrobert/itamae@latest
+    ITAMAE_VERSION=${ITAMAE_VERSION:-latest}
+    if [ "$ITAMAE_VERSION" = "latest" ]; then
+        echo "Installing latest version..."
+        go install github.com/yjmrobert/itamae@latest
+    else
+        echo "Installing version ${ITAMAE_VERSION}..."
+        go install github.com/yjmrobert/itamae@${ITAMAE_VERSION}
+    fi
+
+    # Display installed version
+    echo ""
+    echo "Installed version:"
+    itamae version || itamae --version || echo "itamae installed (version command not available)"
 fi
 
 # Run itamae
