@@ -80,7 +80,7 @@ get_latest_version() {
     
     if [[ -z "$latest" ]]; then
         warning "Could not determine latest version from GitHub"
-        echo "latest"
+        echo ""  # Return empty string instead of "latest"
     else
         echo "$latest"
     fi
@@ -137,11 +137,13 @@ if command -v itamae &> /dev/null; then
     # Determine target version
     TARGET_VERSION=${ITAMAE_VERSION:-}
     
-    if [[ -z "$TARGET_VERSION" || "$TARGET_VERSION" == "latest" ]]; then
+    if [[ -z "$TARGET_VERSION" ]]; then
         # Get latest version from GitHub
         TARGET_VERSION=$(get_latest_version)
-        if [[ "$TARGET_VERSION" != "latest" ]]; then
+        if [[ -n "$TARGET_VERSION" ]]; then
             info "Latest available version: $TARGET_VERSION"
+        else
+            info "Will update to latest available version"
         fi
     else
         info "Target version (from ITAMAE_VERSION): $TARGET_VERSION"
@@ -155,11 +157,12 @@ if command -v itamae &> /dev/null; then
         warning "Cannot determine installed version"
         info "Forcing update to ensure latest version..."
         SHOULD_UPDATE=true
-    # Skip update if already on target version
-    elif [[ "$TARGET_VERSION" == "latest" ]]; then
+    # If we couldn't get the latest version from GitHub, force update
+    elif [[ -z "$TARGET_VERSION" ]]; then
         warning "Could not determine latest version number"
         info "Will attempt update to latest..."
         SHOULD_UPDATE=true
+    # Skip update if already on target version
     elif [[ "$INSTALLED_VERSION" == "$TARGET_VERSION" ]]; then
         success "Already running the target version ($TARGET_VERSION)"
         SHOULD_UPDATE=false
@@ -189,10 +192,13 @@ if command -v itamae &> /dev/null; then
         # Ensure Go is available
         export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
         
-        if [[ "$TARGET_VERSION" == "latest" ]]; then
+        # Install with appropriate version specifier
+        if [[ -z "$TARGET_VERSION" ]]; then
+            # No specific version available, use @latest
             go install github.com/yjmrobert/itamae@latest
         else
-            go install github.com/yjmrobert/itamae@${TARGET_VERSION}
+            # Use specific version
+            go install "github.com/yjmrobert/itamae@${TARGET_VERSION}"
         fi
         
         echo ""
@@ -303,13 +309,13 @@ else
     echo "========================================"
     
     # Install itamae with optional version specification
-    ITAMAE_VERSION=${ITAMAE_VERSION:-latest}
-    if [ "$ITAMAE_VERSION" = "latest" ]; then
+    ITAMAE_VERSION=${ITAMAE_VERSION:-}
+    if [ -z "$ITAMAE_VERSION" ]; then
         info "Installing latest version..."
         go install github.com/yjmrobert/itamae@latest
     else
         info "Installing version ${ITAMAE_VERSION}..."
-        go install github.com/yjmrobert/itamae@${ITAMAE_VERSION}
+        go install "github.com/yjmrobert/itamae@${ITAMAE_VERSION}"
     fi
 
     # Display installed version
