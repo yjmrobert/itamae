@@ -39,6 +39,11 @@ func RunInstall(plugins []ToolPlugin) {
 	}
 	fmt.Println("Core plugins installed.")
 
+	// Configure Git
+	if err := configureGit(); err != nil {
+		fmt.Printf("Error configuring Git: %v\n", err)
+	}
+
 	// Prompt user for a la carte plugins
 	fmt.Println("--- Select a la carte plugins ---")
 	aLaCartePlugins := []ToolPlugin{}
@@ -212,4 +217,26 @@ func parseMetadata(content string) (ToolPlugin, error) {
 		return ToolPlugin{}, fmt.Errorf("scanner error while parsing metadata: %w", err)
 	}
 	return plugin, nil
+}
+
+func configureGit() error {
+	fmt.Println("--- Configuring Git ---")
+	name, err := RunTextInput("Enter your Git user name")
+	if err != nil {
+		return err
+	}
+	email, err := RunTextInput("Enter your Git user email")
+	if err != nil {
+		return err
+	}
+
+	if err := exec.Command("git", "config", "--global", "user.name", name).Run(); err != nil {
+		return fmt.Errorf("failed to set git user.name: %w", err)
+	}
+	if err := exec.Command("git", "config", "--global", "user.email", email).Run(); err != nil {
+		return fmt.Errorf("failed to set git user.email: %w", err)
+	}
+
+	fmt.Println("✅ Git configured.")
+	return nil
 }

@@ -5,6 +5,12 @@
 # Exit on error
 set -e
 
+# Update package lists and install prerequisites
+echo "Updating package lists..."
+sudo apt-get update -y
+echo "Installing prerequisites (git)..."
+sudo apt-get install -y git
+
 # Check if itamae is already installed
 if command -v itamae &> /dev/null; then
     echo "itamae is already installed."

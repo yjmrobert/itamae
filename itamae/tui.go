@@ -5,7 +5,10 @@ import (
 	"io"
 	"os"
 
+	"errors"
+
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -151,4 +154,68 @@ func RunTUI(plugins []ToolPlugin, title string) ([]ToolPlugin, error) {
 		return selectedPlugins, nil
 	}
 	return nil, fmt.Errorf("could not cast final model")
+}
+
+// --- TEXT INPUT ---
+
+type textInputModel struct {
+	textInput textinput.Model
+	err       error
+	question  string
+}
+
+func initialTextInputModel(question string) textInputModel {
+	ti := textinput.New()
+	ti.Focus()
+	ti.CharLimit = 156
+	ti.Width = 20
+
+	return textInputModel{
+		textInput: ti,
+		err:       nil,
+		question:  question,
+	}
+}
+
+func (m textInputModel) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (m textInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEnter, tea.KeyCtrlC, tea.KeyEsc:
+			return m, tea.Quit
+		}
+	case error:
+		m.err = msg
+		return m, nil
+	}
+
+	m.textInput, cmd = m.textInput.Update(msg)
+	return m, cmd
+}
+
+func (m textInputModel) View() string {
+	return fmt.Sprintf(
+		"%s\n\n%s\n\n%s",
+		m.question,
+		m.textInput.View(),
+		"(esc to quit)",
+	) + "\n"
+}
+
+func RunTextInput(question string) (string, error) {
+	p := tea.NewProgram(initialTextInputModel(question))
+	m, err := p.Run()
+	if err != nil {
+		return "", err
+	}
+	if m.(textInputModel).textInput.Value() == "" {
+		return "", errors.New("input cancelled")
+	}
+	return m.(textInputModel).textInput.Value(), nil
 }
