@@ -480,7 +480,7 @@ func configureGit() error {
 	return nil
 }
 
-// batchInstallApt installs multiple APT packages in a single command using nala or apt-get.
+// batchInstallApt installs multiple APT packages in a single command using nala or apt.
 // After installation, it runs any post-install tasks defined for each plugin.
 func batchInstallApt(plugins []ToolPlugin) error {
 	if len(plugins) == 0 {
@@ -490,7 +490,8 @@ func batchInstallApt(plugins []ToolPlugin) error {
 	fmt.Printf("\n⏳ Installing %d APT packages...\n\n", len(plugins))
 
 	// Check if nala is available
-	useNala := exec.Command("command", "-v", "nala").Run() == nil
+	_, err := exec.LookPath("nala")
+	useNala := err == nil
 
 	// Collect package names
 	packages := []string{}
@@ -513,9 +514,9 @@ func batchInstallApt(plugins []ToolPlugin) error {
 		cmd = exec.Command("sudo", args...)
 		fmt.Printf("\n▶️  Running: sudo nala install -y %s\n\n", strings.Join(packages, " "))
 	} else {
-		args := append([]string{"apt-get", "install", "-y"}, packages...)
+		args := append([]string{"apt", "install", "-y"}, packages...)
 		cmd = exec.Command("sudo", args...)
-		fmt.Printf("\n▶️  Running: sudo apt-get install -y %s\n\n", strings.Join(packages, " "))
+		fmt.Printf("\n▶️  Running: sudo apt install -y %s\n\n", strings.Join(packages, " "))
 	}
 
 	// Execute with live output
