@@ -28,34 +28,38 @@ jobs:
           COMMIT=$(git rev-parse --short HEAD)
           BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           
+          # Get the actual module path from go.mod
+          MODULE_PATH=$(go list -m)
+          
           echo "Building version ${VERSION}"
+          echo "Module path: ${MODULE_PATH}"
           
           # Build for Linux AMD64
           GOOS=linux GOARCH=amd64 go build -ldflags "\
-            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
-            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
-            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -X ${MODULE_PATH}/cmd.Version=${VERSION} \
+            -X ${MODULE_PATH}/cmd.GitCommit=${COMMIT} \
+            -X ${MODULE_PATH}/cmd.BuildDate=${BUILD_DATE}" \
             -o itamae-linux-amd64
           
           # Build for Linux ARM64
           GOOS=linux GOARCH=arm64 go build -ldflags "\
-            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
-            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
-            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -X ${MODULE_PATH}/cmd.Version=${VERSION} \
+            -X ${MODULE_PATH}/cmd.GitCommit=${COMMIT} \
+            -X ${MODULE_PATH}/cmd.BuildDate=${BUILD_DATE}" \
             -o itamae-linux-arm64
           
           # Build for macOS AMD64
           GOOS=darwin GOARCH=amd64 go build -ldflags "\
-            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
-            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
-            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -X ${MODULE_PATH}/cmd.Version=${VERSION} \
+            -X ${MODULE_PATH}/cmd.GitCommit=${COMMIT} \
+            -X ${MODULE_PATH}/cmd.BuildDate=${BUILD_DATE}" \
             -o itamae-darwin-amd64
           
           # Build for macOS ARM64
           GOOS=darwin GOARCH=arm64 go build -ldflags "\
-            -X github.com/yjmrobert/itamae/cmd.Version=${VERSION} \
-            -X github.com/yjmrobert/itamae/cmd.GitCommit=${COMMIT} \
-            -X github.com/yjmrobert/itamae/cmd.BuildDate=${BUILD_DATE}" \
+            -X ${MODULE_PATH}/cmd.Version=${VERSION} \
+            -X ${MODULE_PATH}/cmd.GitCommit=${COMMIT} \
+            -X ${MODULE_PATH}/cmd.BuildDate=${BUILD_DATE}" \
             -o itamae-darwin-arm64
 
       - name: Create checksums
