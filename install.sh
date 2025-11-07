@@ -307,22 +307,42 @@ else
     echo "========================================"
     echo "Installing Itamae"
     echo "========================================"
-    
-    # Install itamae with optional version specification
-    ITAMAE_VERSION=${ITAMAE_VERSION:-}
-    if [ -z "$ITAMAE_VERSION" ]; then
-        info "Installing latest version..."
-        go install github.com/yjmrobert/itamae@latest
+
+    # Determine OS and architecture
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m)
+
+    case $ARCH in
+      x86_64)
+        ARCH="amd64"
+        ;;
+      aarch64)
+        ARCH="arm64"
+        ;;
+      *)
+        error "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+    esac
+
+    # Get version to install
+    ITAMAE_VERSION=${ITAMAE_VERSION:-$(get_latest_version)}
+    if [[ -z "$ITAMAE_VERSION" ]]; then
+        ITAMAE_VERSION="latest"
+        DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/latest/download/itamae-${OS}-${ARCH}"
     else
-        info "Installing version ${ITAMAE_VERSION}..."
-        go install "github.com/yjmrobert/itamae@${ITAMAE_VERSION}"
+        DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/download/${ITAMAE_VERSION}/itamae-${OS}-${ARCH}"
     fi
 
-    # Display installed version
-    echo ""
+    info "Downloading itamae ${ITAMAE_VERSION} for ${OS}-${ARCH}..."
+    curl -L -o "/tmp/itamae" "${DOWNLOAD_URL}"
+    chmod +x "/tmp/itamae"
+    sudo mv "/tmp/itamae" /usr/local/bin/itamae
+
     success "Itamae installed"
     info "Installed version:"
-    itamae version 2>/dev/null || itamae --version 2>/dev/null || echo "  itamae installed (version command not available)"
+    itamae version
+
 fi
 
 # Ensure PATH is set for running itamae
