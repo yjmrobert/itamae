@@ -68,8 +68,6 @@ compare_versions() {
 
 # Get the latest release version from GitHub
 get_latest_version() {
-    info "Checking for latest version..."
-    
     # Try using GitHub API (rate limited but reliable)
     local latest=$(curl -s https://api.github.com/repos/yjmrobert/itamae/releases/latest 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
@@ -79,7 +77,6 @@ get_latest_version() {
     fi
     
     if [[ -z "$latest" ]]; then
-        warning "Could not determine latest version from GitHub"
         echo ""  # Return empty string instead of "latest"
     else
         echo "$latest"
@@ -328,6 +325,7 @@ else
     # Get version to install
     ITAMAE_VERSION=${ITAMAE_VERSION:-$(get_latest_version)}
     if [[ -z "$ITAMAE_VERSION" ]]; then
+        info "Could not determine latest version, using 'latest' tag"
         info "Downloading latest itamae for ${OS}-${ARCH}..."
         DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/latest/download/itamae-${OS}-${ARCH}"
     else
