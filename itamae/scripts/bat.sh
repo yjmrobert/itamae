@@ -1,36 +1,31 @@
 #!/bin/bash
 #
 # METADATA
-# NAME: bat (batcat)
+# NAME: bat
 # OMAKASE: true
 # DESCRIPTION: A 'cat' clone with syntax highlighting and Git integration.
 # INSTALL_METHOD: apt
-# PACKAGE_NAME: batcat
+# PACKAGE_NAME: bat
 # POST_INSTALL: post_install
 #
 
 post_install() {
-    # Create the 'bat' symlink that all tools expect
-    mkdir -p "$HOME/.local/bin"
-    ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
-    echo "✅ Created symlink: bat -> batcat"
+    echo "✅ bat installed successfully"
 }
 
 install() {
     echo "Installing bat..."
-    # Debian/Ubuntu package it as 'batcat'
     if command -v nala &> /dev/null; then
-        sudo nala install -y batcat
+        sudo nala install -y bat
     else
-        sudo apt-get install -y batcat
+        sudo apt-get install -y bat
     fi
     post_install
 }
 
 remove() {
     echo "Removing bat..."
-    sudo apt-get purge -y batcat
-    rm -f "$HOME/.local/bin/bat"
+    sudo apt-get purge -y bat
     echo "✅ bat removed."
 }
 
