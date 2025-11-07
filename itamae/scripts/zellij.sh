@@ -2,7 +2,7 @@
 #
 # METADATA
 # NAME: Zellij
-# OMAKASE: true
+# OMAKASE: false
 # DESCRIPTION: A modern terminal multiplexer (like tmux/screen).
 # INSTALL_METHOD: binary
 #

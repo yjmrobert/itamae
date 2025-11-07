@@ -2,7 +2,7 @@
 #
 # METADATA
 # NAME: zoxide
-# OMAKASE: true
+# OMAKASE: false
 # DESCRIPTION: A smarter 'cd' command that remembers your directories.
 # INSTALL_METHOD: binary
 #

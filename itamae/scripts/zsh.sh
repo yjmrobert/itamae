@@ -2,7 +2,7 @@
 #
 # METADATA
 # NAME: Zsh
-# OMAKASE: true
+# OMAKASE: false
 # DESCRIPTION: The Z Shell, a powerful foundation for the terminal.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: zsh

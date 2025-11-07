@@ -2,7 +2,7 @@
 #
 # METADATA
 # NAME: chezmoi
-# OMAKASE: true
+# OMAKASE: false
 # DESCRIPTION: Manages dotfiles across multiple machines.
 # INSTALL_METHOD: binary
 #
