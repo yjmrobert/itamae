@@ -33,7 +33,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"ansible":             {install: "pipx install", remove: "pipx uninstall ansible"},
 	"apt-transport-https": {install: "sudo nala install -y apt-transport-https", remove: "sudo apt-get purge -y apt-transport-https"},
 	"atuin":               {install: "bash", remove: "bash -s -- --uninstall"},
-	"bat":                 {install: "sudo nala install -y batcat", remove: "sudo apt-get purge -y batcat"},
+	"bat":                 {install: "sudo nala install -y bat", remove: "sudo apt-get purge -y bat"},
 	"bin":                 {install: "curl -sL", remove: "rm -f"},
 	"btop":                {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
 	"ca-certificates":     {install: "sudo nala install -y ca-certificates", remove: "sudo apt-get purge -y ca-certificates"},
@@ -273,7 +273,7 @@ func TestMetadataParsing(t *testing.T) {
 		// Core plugins
 		"alacritty":           "alacritty",
 		"apt-transport-https": "apt-transport-https",
-		"bat":                 "batcat",
+		"bat":                 "bat",
 		"btop":                "btop",
 		"ca-certificates":     "ca-certificates",
 		"curl":                "curl",
