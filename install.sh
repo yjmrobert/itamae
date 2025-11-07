@@ -328,14 +328,22 @@ else
     # Get version to install
     ITAMAE_VERSION=${ITAMAE_VERSION:-$(get_latest_version)}
     if [[ -z "$ITAMAE_VERSION" ]]; then
-        ITAMAE_VERSION="latest"
+        info "Downloading latest itamae for ${OS}-${ARCH}..."
         DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/latest/download/itamae-${OS}-${ARCH}"
     else
+        info "Downloading itamae ${ITAMAE_VERSION} for ${OS}-${ARCH}..."
         DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/download/${ITAMAE_VERSION}/itamae-${OS}-${ARCH}"
     fi
 
-    info "Downloading itamae ${ITAMAE_VERSION} for ${OS}-${ARCH}..."
-    curl -L -o "/tmp/itamae" "${DOWNLOAD_URL}"
+    info "Download URL: ${DOWNLOAD_URL}"
+    
+    # Download with better error handling
+    if ! curl -fL --retry 3 --retry-delay 2 -o "/tmp/itamae" "${DOWNLOAD_URL}"; then
+        error "Failed to download itamae from ${DOWNLOAD_URL}"
+        error "Please check that the release exists and try again"
+        exit 1
+    fi
+    
     chmod +x "/tmp/itamae"
     sudo mv "/tmp/itamae" /usr/local/bin/itamae
 
