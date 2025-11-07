@@ -184,48 +184,12 @@ if command -v itamae &> /dev/null; then
     # Perform update if needed
     if [[ "$SHOULD_UPDATE" == true ]]; then
         echo ""
-        info "Updating itamae..."
+        info "Updating itamae from ${INSTALLED_VERSION} to ${TARGET_VERSION}..."
         
-        # Ensure Go is available
-        export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-        
-        # Install with appropriate version specifier
-        if [[ -z "$TARGET_VERSION" ]]; then
-            # No specific version available, use @latest
-            go install github.com/yjmrobert/itamae@latest
-        else
-            # Use specific version
-            go install "github.com/yjmrobert/itamae@${TARGET_VERSION}"
-        fi
-        
-        echo ""
-        success "Updated itamae"
-        info "New version:"
-        itamae version 2>/dev/null || itamae --version 2>/dev/null || echo "  itamae updated (version command not available)"
-    else
-        info "Skipping update - already on target version"
-    fi
-else
-    info "itamae not found - starting installation"
-    
-    echo ""
-    echo "========================================"
-    echo "Installing Go (if needed)"
-    echo "========================================"
-    
-    # Check if Go is installed, and install it if it's not
-    if ! command -v go &> /dev/null; then
-        info "Go is not found, installing..."
-        
-        # Determine the latest Go version
-        info "Checking for the latest Go version..."
-        GO_VERSION=$(curl -s "https://go.dev/VERSION?m=text" | head -n 1 | sed 's/go//')
-        success "Latest Go version is ${GO_VERSION}"
-
         # Determine OS and architecture
         OS=$(uname -s | tr '[:upper:]' '[:lower:]')
         ARCH=$(uname -m)
-
+        
         case $ARCH in
           x86_64)
             ARCH="amd64"
@@ -238,68 +202,80 @@ else
             exit 1
             ;;
         esac
-
-        # Download and install Go
-        case $OS in
-          linux)
-            GO_TARBALL="go${GO_VERSION}.linux-${ARCH}.tar.gz"
-            DOWNLOAD_URL="https://go.dev/dl/${GO_TARBALL}"
-            info "Downloading Go from ${DOWNLOAD_URL}..."
-            curl -L -o "/tmp/${GO_TARBALL}" "${DOWNLOAD_URL}"
-            info "Extracting Go..."
-            sudo tar -C /usr/local -xzf "/tmp/${GO_TARBALL}"
-            rm "/tmp/${GO_TARBALL}"
-            success "Go installation complete"
-            ;;
-          darwin)
-            error "macOS is not yet supported by this install script"
+        
+        # Determine download URL
+        if [[ -z "$TARGET_VERSION" ]]; then
+            info "Downloading latest itamae for ${OS}-${ARCH}..."
+            DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/latest/download/itamae-${OS}-${ARCH}"
+        else
+            info "Downloading itamae ${TARGET_VERSION} for ${OS}-${ARCH}..."
+            DOWNLOAD_URL="https://github.com/yjmrobert/itamae/releases/download/${TARGET_VERSION}/itamae-${OS}-${ARCH}"
+        fi
+        
+        info "Download URL: ${DOWNLOAD_URL}"
+        
+        # Backup current binary
+        if [[ -f /usr/local/bin/itamae ]]; then
+            info "Creating backup of current version..."
+            sudo cp /usr/local/bin/itamae /usr/local/bin/itamae.backup
+        fi
+        
+        # Download with error handling
+        if ! curl -fL --retry 3 --retry-delay 2 -o "/tmp/itamae" "${DOWNLOAD_URL}"; then
+            error "Failed to download itamae from ${DOWNLOAD_URL}"
+            error "Please check that the release exists and try again"
+            # Restore backup if download failed
+            if [[ -f /usr/local/bin/itamae.backup ]]; then
+                sudo mv /usr/local/bin/itamae.backup /usr/local/bin/itamae
+                info "Restored previous version from backup"
+            fi
             exit 1
-            ;;
-          *)
-            error "Unsupported OS: $OS"
-            exit 1
-            ;;
-        esac
+        fi
+        
+        chmod +x "/tmp/itamae"
+        sudo mv "/tmp/itamae" /usr/local/bin/itamae
+        
+        # Clean up backup on success
+        sudo rm -f /usr/local/bin/itamae.backup
+        
+        echo ""
+        success "Updated itamae to ${TARGET_VERSION}"
+        info "New version:"
+        itamae version
+        
+        # After successful update, run itamae install
+        echo ""
+        echo "========================================"
+        echo "Running Itamae Install"
+        echo "========================================"
+        info "Running itamae install..."
+        itamae install
+        
+        echo ""
+        echo "========================================"
+        success "Itamae installation complete!"
+        echo "========================================"
+        exit 0
     else
-        success "Go is already installed"
+        info "Skipping update - already on target version"
+        
+        # Even if no update needed, run itamae install
+        echo ""
+        echo "========================================"
+        echo "Running Itamae Install"
+        echo "========================================"
+        info "Running itamae install..."
+        itamae install
+        
+        echo ""
+        echo "========================================"
+        success "Itamae installation complete!"
+        echo "========================================"
+        exit 0
     fi
-
-    echo ""
-    echo "========================================"
-    echo "Configuring Environment"
-    echo "========================================"
+else
+    info "itamae not found - starting installation"
     
-    # Set PATH for the current session
-    export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-
-    # Add Go to the user's shell profile for future sessions
-    info "Configuring shell environment..."
-    SHELL_CONFIG=""
-    if [[ "$SHELL" == *"zsh"* ]]; then
-      SHELL_CONFIG="$HOME/.zshrc"
-    elif [[ "$SHELL" == *"bash"* ]]; then
-      SHELL_CONFIG="$HOME/.bashrc"
-    else
-      warning "Unsupported shell: $SHELL"
-      info "Please add /usr/local/go/bin and \$HOME/go/bin to your PATH manually"
-    fi
-
-    if [ -n "$SHELL_CONFIG" ] && [ -f "$SHELL_CONFIG" ]; then
-      if ! grep -q "/usr/local/go/bin" "$SHELL_CONFIG"; then
-        echo -e "\n# Go and Itamae PATH" >> "$SHELL_CONFIG"
-        echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> "$SHELL_CONFIG"
-        success "Updated PATH in $SHELL_CONFIG"
-        source "$SHELL_CONFIG" 2>/dev/null || true
-      else
-        info "Go path is already in your shell config"
-      fi
-    else
-      if [ -n "$SHELL_CONFIG" ]; then
-        warning "Could not find shell configuration file: $SHELL_CONFIG"
-        info "Please add /usr/local/go/bin and \$HOME/go/bin to your PATH manually"
-      fi
-    fi
-
     echo ""
     echo "========================================"
     echo "Installing Itamae"
@@ -348,22 +324,17 @@ else
     success "Itamae installed"
     info "Installed version:"
     itamae version
-
+    
+    # After successful installation, run itamae install
+    echo ""
+    echo "========================================"
+    echo "Running Itamae Install"
+    echo "========================================"
+    info "Running itamae install..."
+    itamae install
+    
+    echo ""
+    echo "========================================"
+    success "Itamae installation complete!"
+    echo "========================================"
 fi
-
-# Ensure PATH is set for running itamae
-export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-
-echo ""
-echo "========================================"
-echo "Running Itamae Install"
-echo "========================================"
-
-# Run itamae
-info "Running itamae install..."
-itamae install
-
-echo ""
-echo "========================================"
-success "Itamae installation complete!"
-echo "========================================"
