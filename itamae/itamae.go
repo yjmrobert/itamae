@@ -18,15 +18,21 @@ import (
 //go:embed scripts/unverified/*
 var scriptsFS embed.FS
 
+type Input struct {
+	Name   string
+	Prompt string
+}
+
 type ToolPlugin struct {
-	ID            string // "vscode", "ripgrep"
-	Name          string // "Visual Studio Code"
-	Description   string
-	Omakase       bool
-	ScriptPath    string // The path to the executable in the /tmp/ directory
-	InstallMethod string // "apt", "binary", "manual"
-	PackageName   string // For apt packages, the actual package name
-	PostInstall   string // Function name for post-install tasks (optional)
+	ID             string // "vscode", "ripgrep"
+	Name           string // "Visual Studio Code"
+	Description    string
+	Omakase        bool
+	ScriptPath     string // The path to the executable in the /tmp/ directory
+	InstallMethod  string // "apt", "binary", "manual"
+	PackageName    string // For apt packages, the actual package name
+	PostInstall    string // Function name for post-install tasks (optional)
+	RequiredInputs []Input
 }
 
 func RunInstall(plugins []ToolPlugin) {
@@ -84,7 +90,7 @@ func RunInstall(plugins []ToolPlugin) {
 		Logger.Info("\n" + strings.Repeat("=", 60))
 		Logger.Info("=== Phase 1: Installing APT packages ===")
 		Logger.Info(strings.Repeat("=", 60))
-		if err := batchInstallApt(aptPlugins); err != nil {
+		if err := batchInstallApt(aptPlugins, nil); err != nil {
 			Logger.Errorf("❌ Error in batch APT installation: %v\n", err)
 			for _, p := range aptPlugins {
 				failed = append(failed, p.Name)
@@ -108,7 +114,7 @@ func RunInstall(plugins []ToolPlugin) {
 		Logger.Info(strings.Repeat("=", 60))
 		for _, p := range binaryPlugins {
 			Logger.Infof("\n--- Installing %s ---\n", p.Name)
-			if err := executeScript(p, "install"); err != nil {
+			if err := executeScript(p, "install", nil); err != nil {
 				Logger.Errorf("❌ Error installing %s: %v\n", p.Name, err)
 				failed = append(failed, p.Name)
 			} else {
@@ -124,7 +130,7 @@ func RunInstall(plugins []ToolPlugin) {
 		Logger.Info(strings.Repeat("=", 60))
 		for _, p := range manualPlugins {
 			Logger.Infof("\n--- %s ---\n", p.Name)
-			if err := executeScript(p, "install"); err != nil {
+			if err := executeScript(p, "install", nil); err != nil {
 				Logger.Errorf("❌ Error installing %s: %v\n", p.Name, err)
 				failed = append(failed, p.Name)
 			} else {
@@ -283,6 +289,22 @@ func countPostInstalls(plugins []ToolPlugin) int {
 	return count
 }
 
+type formRunner interface {
+	Run() error
+}
+
+type realFormRunner struct {
+	form *huh.Form
+}
+
+func (r *realFormRunner) Run() error {
+	return r.form.Run()
+}
+
+var newFormRunner = func(form *huh.Form) formRunner {
+	return &realFormRunner{form: form}
+}
+
 func RunTextInput(question string) (string, error) {
 	var value string
 
@@ -300,7 +322,8 @@ func RunTextInput(question string) (string, error) {
 		),
 	)
 
-	err := form.Run()
+	runner := newFormRunner(form)
+	err := runner.Run()
 	if err != nil {
 		return "", err
 	}
@@ -313,7 +336,7 @@ func RunUninstall(plugins []ToolPlugin) {
 	for _, p := range plugins {
 		if err := checkScript(p); err == nil {
 			Logger.Infof("--- Uninstalling %s ---\n", p.Name)
-			if err := executeScript(p, "remove"); err != nil {
+			if err := executeScript(p, "remove", nil); err != nil {
 				Logger.Errorf("Error uninstalling %s: %v\n", p.Name, err)
 			}
 		}
@@ -326,8 +349,13 @@ func checkScript(plugin ToolPlugin) error {
 	return cmd.Run()
 }
 
-func executeScript(plugin ToolPlugin, command string) error {
+func executeScript(plugin ToolPlugin, command string, env map[string]string) error {
 	cmd := exec.Command("bash", plugin.ScriptPath, command)
+
+	// Set environment variables
+	for key, value := range env {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, value))
+	}
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -450,6 +478,14 @@ func parseMetadata(content string) (ToolPlugin, error) {
 			plugin.PackageName = value
 		case "POST_INSTALL":
 			plugin.PostInstall = value
+		case "REQUIRES":
+			parts := strings.SplitN(value, "|", 2)
+			if len(parts) == 2 {
+				plugin.RequiredInputs = append(plugin.RequiredInputs, Input{
+					Name:   parts[0],
+					Prompt: parts[1],
+				})
+			}
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -482,7 +518,134 @@ func configureGit() error {
 
 // batchInstallApt installs multiple APT packages in a single command using nala or apt.
 // After installation, it runs any post-install tasks defined for each plugin.
-func batchInstallApt(plugins []ToolPlugin) error {
+func RunCustom(plugins []ToolPlugin) {
+	Logger.Info("Starting Itamae custom setup...")
+	selectedPlugins := selectCustomPlugins(plugins)
+	if len(selectedPlugins) == 0 {
+		Logger.Info("No plugins selected. Exiting.")
+		return
+	}
+
+	// Gather all required inputs upfront
+	requiredInputs := make(map[string]string)
+	for _, p := range selectedPlugins {
+		for _, input := range p.RequiredInputs {
+			if _, ok := requiredInputs[input.Name]; !ok {
+				value, err := RunTextInput(input.Prompt)
+				if err != nil {
+					Logger.Errorf("Error getting input for %s: %v", input.Name, err)
+					return
+				}
+				requiredInputs[input.Name] = value
+			}
+		}
+	}
+
+	// Confirm before proceeding
+	if !confirmInstallation() {
+		Logger.Info("Installation cancelled.")
+		return
+	}
+
+	processCustomInstall(selectedPlugins, requiredInputs)
+}
+
+func processCustomInstall(selectedPlugins []ToolPlugin, requiredInputs map[string]string) {
+	// Separate plugins by install method
+	aptPlugins := []ToolPlugin{}
+	otherPlugins := []ToolPlugin{}
+	for _, p := range selectedPlugins {
+		if p.InstallMethod == "apt" {
+			aptPlugins = append(aptPlugins, p)
+		} else {
+			otherPlugins = append(otherPlugins, p)
+		}
+	}
+
+	// Track success/failure
+	successful := []string{}
+	failed := []string{}
+
+	// Phase 1: Batch install all APT packages
+	if len(aptPlugins) > 0 {
+		if err := batchInstallApt(aptPlugins, requiredInputs); err != nil {
+			Logger.Errorf("❌ Error in batch APT installation: %v\n", err)
+			for _, p := range aptPlugins {
+				failed = append(failed, p.Name)
+			}
+		} else {
+			for _, p := range aptPlugins {
+				successful = append(successful, p.Name)
+			}
+		}
+	}
+
+	// Phase 2: Install other plugins individually
+	for _, p := range otherPlugins {
+		Logger.Infof("\n--- Installing %s ---\n", p.Name)
+		if err := executeScript(p, "install", requiredInputs); err != nil {
+			Logger.Errorf("❌ Error installing %s: %v\n", p.Name, err)
+			failed = append(failed, p.Name)
+		} else {
+			successful = append(successful, p.Name)
+		}
+	}
+
+	// Display summary
+	displayInstallationSummary(successful, failed)
+
+	Logger.Info("\n✅ Itamae custom setup complete!")
+}
+
+func selectCustomPlugins(plugins []ToolPlugin) []ToolPlugin {
+	if len(plugins) == 0 {
+		return []ToolPlugin{}
+	}
+
+	Logger.Info("📦 Select the tools you'd like to install:")
+
+	options := []huh.Option[string]{}
+	for _, p := range plugins {
+		label := fmt.Sprintf("%s - %s", p.Name, p.Description)
+		options = append(options, huh.NewOption(label, p.ID))
+	}
+
+	var selectedIDs []string
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Title("Available Tools").
+				Description("Use space to select, enter to confirm").
+				Options(options...).
+				Value(&selectedIDs).
+				Height(30),
+		),
+	)
+
+	runner := newFormRunner(form)
+	err := runner.Run()
+	if err != nil {
+		Logger.Errorf("Error: %v\n", err)
+		return []ToolPlugin{}
+	}
+
+	selectedPlugins := []ToolPlugin{}
+	selectedMap := make(map[string]bool)
+	for _, id := range selectedIDs {
+		selectedMap[id] = true
+	}
+
+	for _, p := range plugins {
+		if selectedMap[p.ID] {
+			selectedPlugins = append(selectedPlugins, p)
+		}
+	}
+
+	return selectedPlugins
+}
+
+func batchInstallApt(plugins []ToolPlugin, env map[string]string) error {
 	if len(plugins) == 0 {
 		return nil
 	}
@@ -536,7 +699,7 @@ func batchInstallApt(plugins []ToolPlugin) error {
 		for _, p := range plugins {
 			if p.PostInstall != "" {
 				Logger.Infof("  • %s... ", p.Name)
-				if err := executeScript(p, "post_install"); err != nil {
+				if err := executeScript(p, "post_install", env); err != nil {
 					Logger.Error("❌ failed\n")
 				} else {
 					Logger.Info("✅\n")

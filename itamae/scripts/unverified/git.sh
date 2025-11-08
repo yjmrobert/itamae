@@ -6,7 +6,8 @@
 # DESCRIPTION: A free and open source distributed version control system.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: git
-#
+# REQUIRES: GIT_USER_NAME|Enter your Git user name
+# REQUIRES: GIT_USER_EMAIL|Enter your Git user email
 
 install() {
     echo "Installing Git..."
@@ -15,6 +16,15 @@ install() {
     else
         sudo apt-get install -y git
     fi
+
+    if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then
+        git config --global user.name "$GIT_USER_NAME"
+        git config --global user.email "$GIT_USER_EMAIL"
+        echo "✅ Git configured."
+    else
+        echo "⚠️ Git user name and email not provided. Skipping configuration."
+    fi
+
     echo "✅ Git installed."
 }
 
