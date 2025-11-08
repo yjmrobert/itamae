@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/yjmrobert/itamae/itamae"
 )
 
 var rootCmd = &cobra.Command{
@@ -25,15 +25,15 @@ func Execute() {
 	// Check for version flag in os.Args before cobra processes it
 	for _, arg := range os.Args[1:] {
 		if arg == "--version" || arg == "-v" {
-			fmt.Printf("itamae version %s\n", Version)
-			fmt.Printf("  commit: %s\n", GitCommit)
-			fmt.Printf("  built:  %s\n", BuildDate)
+			itamae.Logger.Infof("itamae version %s", Version)
+			itamae.Logger.Infof("  commit: %s", GitCommit)
+			itamae.Logger.Infof("  built:  %s", BuildDate)
 			os.Exit(0)
 		}
 	}
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your command '%s'", err)
+		itamae.Logger.Errorf("Whoops. There was an error while executing your command '%s'", err)
 		os.Exit(1)
 	}
 }

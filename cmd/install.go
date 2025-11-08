@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/yjmrobert/itamae/itamae"
 
 	"github.com/spf13/cobra"
@@ -13,7 +12,7 @@ var installCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		plugins, cleanup, err := itamae.LoadPlugins()
 		if err != nil {
-			fmt.Printf("Error loading plugins: %v\n", err)
+			itamae.Logger.Errorf("Error loading plugins: %v\n", err)
 			return
 		}
 		defer cleanup()
