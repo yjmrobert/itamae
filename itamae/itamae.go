@@ -15,7 +15,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-//go:embed scripts/*
+//go:embed scripts/unverified/*
 var scriptsFS embed.FS
 
 type ToolPlugin struct {
@@ -373,7 +373,7 @@ func LoadPlugins() ([]ToolPlugin, func(), error) {
 
 	var plugins []ToolPlugin
 
-	files, err := scriptsFS.ReadDir("scripts")
+	files, err := scriptsFS.ReadDir("scripts/unverified")
 	if err != nil {
 		return nil, cleanup, fmt.Errorf("failed to read embedded scripts dir: %w", err)
 	}
@@ -395,7 +395,7 @@ func LoadPlugins() ([]ToolPlugin, func(), error) {
 
 func processPluginFile(file fs.DirEntry, tmpDir string) (ToolPlugin, error) {
 	fileName := file.Name()
-	scriptPath := filepath.Join("scripts", fileName)
+	scriptPath := filepath.Join("scripts/unverified", fileName)
 
 	// Read content for parsing
 	content, err := scriptsFS.ReadFile(scriptPath)
