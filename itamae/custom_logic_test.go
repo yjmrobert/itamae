@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestProcessCustomInstall(t *testing.T) {
+func TestProcessInstall(t *testing.T) {
 	mockDir, logPath, cleanup := setupTestEnvironment()
 	defer cleanup()
 
@@ -33,7 +33,7 @@ func TestProcessCustomInstall(t *testing.T) {
 	defer os.Remove("/tmp/itamae-test-git.sh")
 	defer os.Remove("/tmp/itamae-test-script.sh")
 
-	processCustomInstall(mockPlugins, requiredInputs)
+	processInstall(mockPlugins, requiredInputs)
 
 	logBytes, err := os.ReadFile(logPath)
 	if err != nil {

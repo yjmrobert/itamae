@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var customCmd = &cobra.Command{
-	Use:   "custom",
+var installCmd = &cobra.Command{
+	Use:   "install",
 	Short: "Install a custom set of software.",
 	Run: func(cmd *cobra.Command, args []string) {
 		plugins, cleanup, err := itamae.LoadPlugins()
@@ -16,10 +16,10 @@ var customCmd = &cobra.Command{
 			return
 		}
 		defer cleanup()
-		itamae.RunCustom(plugins)
+		itamae.RunInstall(plugins)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(customCmd)
+	rootCmd.AddCommand(installCmd)
 }

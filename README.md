@@ -53,7 +53,7 @@ itamae --version
 
 Itamae has the following commands:
 
-*   **custom:** Run `itamae custom` to install a custom set of software.
+*   **install:** Run `itamae install` to install a custom set of software.
 *   **version:** Run `itamae version` or `itamae --version` to display version information.
 
 ## Available Plugins

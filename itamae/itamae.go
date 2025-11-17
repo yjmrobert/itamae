@@ -276,9 +276,9 @@ func parseMetadata(content string) (ToolPlugin, error) {
 
 // batchInstallApt installs multiple APT packages in a single command using nala or apt.
 // After installation, it runs any post-install tasks defined for each plugin.
-func RunCustom(plugins []ToolPlugin) {
-	Logger.Info("Starting Itamae custom setup...")
-	selectedPlugins := selectCustomPlugins(plugins)
+func RunInstall(plugins []ToolPlugin) {
+	Logger.Info("Starting Itamae setup...")
+	selectedPlugins := selectPlugins(plugins)
 	if len(selectedPlugins) == 0 {
 		Logger.Info("No plugins selected. Exiting.")
 		return
@@ -305,10 +305,10 @@ func RunCustom(plugins []ToolPlugin) {
 		return
 	}
 
-	processCustomInstall(selectedPlugins, requiredInputs)
+	processInstall(selectedPlugins, requiredInputs)
 }
 
-func processCustomInstall(selectedPlugins []ToolPlugin, requiredInputs map[string]string) {
+func processInstall(selectedPlugins []ToolPlugin, requiredInputs map[string]string) {
 	// Separate plugins by install method
 	aptPlugins := []ToolPlugin{}
 	otherPlugins := []ToolPlugin{}
@@ -352,10 +352,10 @@ func processCustomInstall(selectedPlugins []ToolPlugin, requiredInputs map[strin
 	// Display summary
 	displayInstallationSummary(successful, failed)
 
-	Logger.Info("\n✅ Itamae custom setup complete!")
+	Logger.Info("\n✅ Itamae setup complete!")
 }
 
-func selectCustomPlugins(plugins []ToolPlugin) []ToolPlugin {
+func selectPlugins(plugins []ToolPlugin) []ToolPlugin {
 	if len(plugins) == 0 {
 		return []ToolPlugin{}
 	}
