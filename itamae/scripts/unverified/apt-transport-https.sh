@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: apt-transport-https
-# OMAKASE: true
 # DESCRIPTION: Allows using repositories over HTTPS.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: apt-transport-https

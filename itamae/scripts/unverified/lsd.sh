@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: lsd (ls deluxe)
-# OMAKASE: true
 # DESCRIPTION: A modern 'ls' with pretty colors and icons.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: lsd

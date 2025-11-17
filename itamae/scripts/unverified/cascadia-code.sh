@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Cascadia Code
-# OMAKASE: false
 # DESCRIPTION: A monospaced font from Microsoft that includes programming ligatures.
 # INSTALL_METHOD: binary
 #

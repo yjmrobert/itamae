@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Dunst
-# OMAKASE: false
 # DESCRIPTION: A lightweight notification daemon for WMs.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: dunst

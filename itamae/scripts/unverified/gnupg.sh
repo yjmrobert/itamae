@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: gnupg
-# OMAKASE: true
 # DESCRIPTION: The GNU Privacy Guard, for encryption and signing.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: gnupg

@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: ca-certificates
-# OMAKASE: true
 # DESCRIPTION: Provides common CA certificates for SSL/TLS.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: ca-certificates

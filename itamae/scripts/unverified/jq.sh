@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: jq
-# OMAKASE: true
 # DESCRIPTION: A lightweight and flexible command-line JSON processor.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: jq

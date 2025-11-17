@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: ripgrep (rg)
-# OMAKASE: true
 # DESCRIPTION: A fast, modern replacement for grep that respects .gitignore.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: ripgrep

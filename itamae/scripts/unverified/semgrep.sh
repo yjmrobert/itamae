@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: semgrep
-# OMAKASE: true
 # DESCRIPTION: A fast, open-source, static analysis tool for finding bugs.
 # INSTALL_METHOD: binary
 #

@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Git
-# OMAKASE: true
 # DESCRIPTION: A free and open source distributed version control system.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: git

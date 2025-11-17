@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Alacritty
-# OMAKASE: true
 # DESCRIPTION: A fast, cross-platform, OpenGL terminal emulator.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: alacritty

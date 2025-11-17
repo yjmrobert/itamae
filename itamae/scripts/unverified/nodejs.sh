@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Node.js
-# OMAKASE: true
 # DESCRIPTION: A JavaScript runtime environment.
 # INSTALL_METHOD: binary
 #

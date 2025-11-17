@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: kubectl
-# OMAKASE: true
 # DESCRIPTION: The command-line tool for controlling Kubernetes clusters.
 # INSTALL_METHOD: binary
 #

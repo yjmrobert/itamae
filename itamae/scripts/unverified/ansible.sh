@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Ansible
-# OMAKASE: true
 # DESCRIPTION: An open-source automation tool, including ansible-core and ansible-runner.
 # INSTALL_METHOD: binary
 #

@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Rust
-# OMAKASE: true
 # DESCRIPTION: A multi-paradigm, general-purpose programming language.
 # INSTALL_METHOD: binary
 #

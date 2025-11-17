@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Polybar
-# OMAKASE: false
 # DESCRIPTION: A fast and easy-to-use status bar for X11.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: polybar

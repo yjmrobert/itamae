@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Starship
-# OMAKASE: true
 # DESCRIPTION: The minimal, fast, and customizable prompt.
 # INSTALL_METHOD: binary
 #

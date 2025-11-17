@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: GitHub CLI
-# OMAKASE: true
 # DESCRIPTION: The official GitHub command-line tool.
 # INSTALL_METHOD: binary
 #

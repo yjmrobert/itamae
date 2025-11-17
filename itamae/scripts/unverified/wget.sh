@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: wget
-# OMAKASE: true
 # DESCRIPTION: A utility for non-interactive download of files from the web.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: wget

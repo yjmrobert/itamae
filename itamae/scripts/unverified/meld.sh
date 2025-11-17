@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Meld
-# OMAKASE: false
 # DESCRIPTION: A visual diff and merge tool for developers.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: meld

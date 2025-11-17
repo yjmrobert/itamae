@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: wireguard
-# OMAKASE: true
 # DESCRIPTION: A fast, modern, and secure VPN tunnel.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: wireguard

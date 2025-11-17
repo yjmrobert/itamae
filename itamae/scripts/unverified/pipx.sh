@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: pipx
-# OMAKASE: true
 # DESCRIPTION: A tool to install and run Python applications in isolated environments.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: pipx

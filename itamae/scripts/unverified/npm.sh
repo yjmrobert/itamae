@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: npm
-# OMAKASE: true
 # DESCRIPTION: The package manager for Node.js.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: npm

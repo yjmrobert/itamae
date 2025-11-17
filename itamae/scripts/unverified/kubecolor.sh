@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: kubecolor
-# OMAKASE: false
 # DESCRIPTION: A tool to colorize kubectl output.
 # INSTALL_METHOD: binary
 #

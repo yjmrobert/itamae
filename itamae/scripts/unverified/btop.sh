@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: btop
-# OMAKASE: true
 # DESCRIPTION: A beautiful, modern resource monitor.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: btop

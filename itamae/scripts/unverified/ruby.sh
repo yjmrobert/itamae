@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Ruby
-# OMAKASE: true
 # DESCRIPTION: A dynamic, open source programming language.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: ruby-full

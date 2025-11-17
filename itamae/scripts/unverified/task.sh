@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Task
-# OMAKASE: true
 # DESCRIPTION: A task runner / build tool that aims to be simpler than GNU Make.
 # INSTALL_METHOD: binary
 #

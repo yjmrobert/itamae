@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: ncdu
-# OMAKASE: false
 # DESCRIPTION: A disk usage analyzer with an ncurses interface.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: ncdu

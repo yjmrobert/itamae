@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Maven
-# OMAKASE: true
 # DESCRIPTION: A build automation tool used primarily for Java projects.
 # INSTALL_METHOD: binary
 #

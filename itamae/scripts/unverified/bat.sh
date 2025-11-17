@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: bat
-# OMAKASE: true
 # DESCRIPTION: A 'cat' clone with syntax highlighting and Git integration.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: bat

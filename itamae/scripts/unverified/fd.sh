@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: fd (fd-find)
-# OMAKASE: true
 # DESCRIPTION: A fast and user-friendly alternative to 'find'.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: fd-find

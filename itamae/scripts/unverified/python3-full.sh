@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: python3-full
-# OMAKASE: true
 # DESCRIPTION: The complete Python 3 programming language environment.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: python3-full

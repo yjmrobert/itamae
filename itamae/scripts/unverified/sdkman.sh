@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: SDKMan
-# OMAKASE: true
 # DESCRIPTION: A tool for managing parallel versions of multiple Software Development Kits.
 # INSTALL_METHOD: binary
 #

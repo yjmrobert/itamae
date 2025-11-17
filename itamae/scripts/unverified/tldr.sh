@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: tldr (tealdeer)
-# OMAKASE: true
 # DESCRIPTION: A fast, community-driven 'man' page replacement.
 # INSTALL_METHOD: binary
 #

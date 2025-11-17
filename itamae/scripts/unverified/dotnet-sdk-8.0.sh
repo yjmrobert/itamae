@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: .NET SDK 8.0
-# OMAKASE: true
 # DESCRIPTION: The Microsoft .NET 8.0 Software Development Kit.
 # INSTALL_METHOD: binary
 #

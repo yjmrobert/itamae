@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Java
-# OMAKASE: true
 # DESCRIPTION: The Java Development Kit (Temurin/Adoptium).
 # INSTALL_METHOD: binary
 #

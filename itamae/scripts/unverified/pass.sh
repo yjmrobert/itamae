@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: pass
-# OMAKASE: true
 # DESCRIPTION: The standard unix password manager.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: pass

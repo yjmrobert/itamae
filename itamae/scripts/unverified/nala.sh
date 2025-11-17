@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: nala
-# OMAKASE: true
 # DESCRIPTION: A more optimized package management experience.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: nala

@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: curl
-# OMAKASE: true
 # DESCRIPTION: A tool to transfer data from or to a server.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: curl

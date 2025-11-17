@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: Helm
-# OMAKASE: true
 # DESCRIPTION: The package manager for Kubernetes.
 # INSTALL_METHOD: binary
 #

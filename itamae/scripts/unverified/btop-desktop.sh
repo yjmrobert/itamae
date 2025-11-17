@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: btop-desktop
-# OMAKASE: false
 # DESCRIPTION: A resource monitor that shows usage and stats for processor, memory, disks, network, and processes.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: btop

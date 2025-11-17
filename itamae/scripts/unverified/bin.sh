@@ -2,7 +2,6 @@
 #
 # METADATA
 # NAME: bin
-# OMAKASE: true
 # DESCRIPTION: A tool for easier management of binary tools.
 # INSTALL_METHOD: binary
 #
