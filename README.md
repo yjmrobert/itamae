@@ -53,8 +53,7 @@ itamae --version
 
 Itamae has the following commands:
 
-*   **install:** Run `itamae install` to install the core set of software and then choose from a list of additional plugins.
-*   **uninstall:** Run `itamae uninstall` to remove all installed software.
+*   **custom:** Run `itamae custom` to install a custom set of software.
 *   **version:** Run `itamae version` or `itamae --version` to display version information.
 
 ## Available Plugins
