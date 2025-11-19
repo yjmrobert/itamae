@@ -4,19 +4,23 @@ This guide provides instructions for developers who want to add new tools to Ita
 
 ## How It Works
 
-Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and uses interactive forms (built with [Charm Huh](https://github.com/charmbracelet/huh)) to let the user choose which optional plugins to install.
+Itamae uses a Go binary to orchestrate shell scripts organized into two directories:
+- **`scripts/core/`** - Essential development tools that are always installed together
+- **`scripts/unverified/`** - Additional tools that users can selectively install
+
+Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and uses interactive forms (built with [Charm Huh](https://github.com/charmbracelet/huh)) to let users choose installation categories and packages.
 
 ## Adding a New Plugin
 
-To add a new plugin, create a new shell script in the `scripts/` directory. The script must have the following structure:
+To add a new plugin, create a new shell script in either `scripts/core/` (for essential tools) or `scripts/unverified/` (for optional tools). The script must have the following structure:
 
 1.  **Metadata:** The script must start with a metadata block that provides information about the plugin.
     *   `# NAME:` The name of the software.
-    *   `# OMAKASE:` Whether the plugin should be included in the default "omakase" installation (`true` or `false`).
     *   `# DESCRIPTION:` A short description of the software.
     *   `# INSTALL_METHOD:` The installation method: `apt`, `binary`, or `manual`.
     *   `# PACKAGE_NAME:` (For `apt` plugins only) The actual package name in the APT repository.
     *   `# POST_INSTALL:` (Optional) The name of a function to run after batch APT installation (e.g., `post_install`).
+    *   `# REQUIRES:` (Optional) Required user inputs in format `VAR_NAME|Prompt text` (can have multiple).
 
 2.  **`install()` function:** This function should contain the commands to install the software.
     *   **Package Manager:** For APT-based tools, the `install()` function should prefer `nala` over `apt-get` if it is available. This function serves as a fallback for individual installations.
@@ -49,7 +53,6 @@ Tools are automatically categorized by their `INSTALL_METHOD`:
 #
 # METADATA
 # NAME: bat (batcat)
-# OMAKASE: true
 # DESCRIPTION: A 'cat' clone with syntax highlighting and Git integration.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: batcat
@@ -101,7 +104,6 @@ esac
 #
 # METADATA
 # NAME: My Awesome Tool
-# OMAKASE: true
 # DESCRIPTION: A really cool tool that does awesome things.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: my-awesome-tool
@@ -143,7 +145,6 @@ esac
 #
 # METADATA
 # NAME: My Binary Tool
-# OMAKASE: false
 # DESCRIPTION: A tool installed from a binary release.
 # INSTALL_METHOD: binary
 #

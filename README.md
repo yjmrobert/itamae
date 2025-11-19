@@ -56,23 +56,19 @@ Itamae has the following commands:
 *   **install:** Run `itamae install` to install a custom set of software.
 *   **version:** Run `itamae version` or `itamae --version` to display version information.
 
-## Available Plugins
-
-The following plugins are available:
-
-*   **Ripgrep:** A powerful command-line search tool.
-*   **Visual Studio Code:** A popular code editor.
-
 ## How It Works
 
-Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and provides an interactive form interface for selecting optional plugins.
+Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` directory. Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and provides an interactive form interface for selecting packages.
 
 ### Installation Process
 
-1. **Interactive Selection:** Choose which additional tools to install using an interactive multi-select form
-2. **Installation Plan:** Review the complete installation plan organized by method (APT, binary, manual)
-3. **Batch Installation:** All APT packages are installed in a single optimized command using `nala` (or `apt-get`)
-4. **Individual Installation:** Binary and manual installations run individually with live progress
+1. **Category Selection:** Choose between two categories:
+   - **Core:** Installs all essential development tools automatically (no individual selection)
+   - **Unverified:** Interactive multi-select to choose specific packages
+2. **Package Selection:** (Unverified only) Choose which tools to install using an interactive multi-select form
+3. **Confirmation:** Review and confirm the installation plan
+4. **Batch Installation:** All APT packages are installed in a single optimized command using `nala` (or `apt-get`)
+5. **Individual Installation:** Binary and manual installations run individually with live progress
 
 ### Performance Optimization
 
