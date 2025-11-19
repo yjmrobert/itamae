@@ -1,0 +1,45 @@
+baseURL = 'https://yjmrobert.github.io/itamae/'
+languageCode = 'en-us'
+title = 'Itamae'
+theme = 'hextra'
+
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.112.0"
+
+[menu]
+  [[menu.main]]
+    identifier = "docs"
+    name = "Documentation"
+    url = "/docs/"
+    weight = 1
+
+  [[menu.main]]
+    identifier = "github"
+    name = "GitHub"
+    url = "https://github.com/yjmrobert/itamae"
+    weight = 2
+    [menu.main.params]
+      icon = "github"
+
+[params]
+  description = "A command-line tool to set up a developer's Linux workstation."
+
+  # Repository configuration
+  [params.editURL]
+    enable = true
+    base = "https://github.com/yjmrobert/itamae/edit/master/docs/content"
+
+  [params.search]
+    enable = true
+    type = "flexsearch"
+
+  [params.footer]
+    enable = true
+    displayCopyright = true
+    copyright = "© 2025 Itamae Contributors"
+
+  [params.navbar]
+    displayTitle = true
+    displayLogo = true
