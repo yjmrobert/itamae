@@ -13,7 +13,7 @@ theme = 'hextra'
   [[menu.main]]
     identifier = "docs"
     name = "Documentation"
-    url = "/docs/"
+    pageRef = "/docs"
     weight = 1
 
   [[menu.main]]

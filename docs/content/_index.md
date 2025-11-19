@@ -14,4 +14,4 @@ Itamae is a command-line tool written in Go that sets up a developer's Linux wor
 *   **Optimized Installation:** Batches APT packages for speed.
 *   **Modern CLI:** Built with Charm libraries for a great user experience.
 
-[Get Started](/docs/getting-started/)
+[Get Started]({{< ref "docs/getting-started.md" >}})

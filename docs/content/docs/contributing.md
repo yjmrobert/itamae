@@ -7,7 +7,7 @@ weight: 3
 
 Contributions are welcome!
 
-If you would like to add a new tool to Itamae, please see the [Developer Guide](/docs/developers/) for detailed instructions.
+If you would like to add a new tool to Itamae, please see the [Developer Guide]({{< ref "developers.md" >}}) for detailed instructions.
 
 ## Linting and Testing
 

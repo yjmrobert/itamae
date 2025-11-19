@@ -7,6 +7,6 @@ weight: 1
 
 Welcome to the Itamae documentation. Here you will find everything you need to know about using and contributing to Itamae.
 
-*   [Getting Started](/docs/getting-started/): Installation and usage instructions.
-*   [Contributing](/docs/contributing/): How to contribute to the project.
-*   [Developer Guide](/docs/developers/): Detailed guide for developers and plugin creators.
+*   [Getting Started]({{< ref "getting-started.md" >}}): Installation and usage instructions.
+*   [Contributing]({{< ref "contributing.md" >}}): How to contribute to the project.
+*   [Developer Guide]({{< ref "developers.md" >}}): Detailed guide for developers and plugin creators.
