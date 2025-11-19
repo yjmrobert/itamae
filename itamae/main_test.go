@@ -90,7 +90,7 @@ var pluginAssertions = map[string]pluginAssertion{
 func TestMain(m *testing.M) {
 	var cleanupPlugins func()
 	var err error
-	plugins, cleanupPlugins, err = LoadPlugins()
+	plugins, cleanupPlugins, err = LoadPlugins("unverified")
 	if err != nil {
 		fmt.Printf("Failed to load plugins in TestMain: %v\n", err)
 		os.Exit(1)

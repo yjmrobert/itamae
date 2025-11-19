@@ -15,7 +15,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-//go:embed scripts/unverified/*
+//go:embed scripts/core/* scripts/unverified/*
 var scriptsFS embed.FS
 
 type Input struct {
@@ -169,7 +169,32 @@ func executeScript(plugin ToolPlugin, command string, env map[string]string) err
 	return cmd.Wait()
 }
 
-func LoadPlugins() ([]ToolPlugin, func(), error) {
+func SelectCategory() (string, error) {
+	var category string
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select package category").
+				Description("Choose which category of packages to install").
+				Options(
+					huh.NewOption("Core - Install all essential packages", "core"),
+					huh.NewOption("Unverified - Select individual packages", "unverified"),
+				).
+				Value(&category),
+		),
+	)
+
+	runner := newFormRunner(form)
+	err := runner.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return category, nil
+}
+
+func LoadPlugins(category string) ([]ToolPlugin, func(), error) {
 	tmpDir, err := os.MkdirTemp("", "itamae-scripts-")
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create temp dir: %w", err)
@@ -181,7 +206,8 @@ func LoadPlugins() ([]ToolPlugin, func(), error) {
 
 	var plugins []ToolPlugin
 
-	files, err := scriptsFS.ReadDir("scripts/unverified")
+	scriptDir := fmt.Sprintf("scripts/%s", category)
+	files, err := scriptsFS.ReadDir(scriptDir)
 	if err != nil {
 		return nil, cleanup, fmt.Errorf("failed to read embedded scripts dir: %w", err)
 	}
@@ -191,7 +217,7 @@ func LoadPlugins() ([]ToolPlugin, func(), error) {
 			continue
 		}
 
-		plugin, err := processPluginFile(file, tmpDir)
+		plugin, err := processPluginFile(file, tmpDir, category)
 		if err != nil {
 			return nil, cleanup, fmt.Errorf("failed to process plugin %s: %w", file.Name(), err)
 		}
@@ -201,9 +227,9 @@ func LoadPlugins() ([]ToolPlugin, func(), error) {
 	return plugins, cleanup, nil
 }
 
-func processPluginFile(file fs.DirEntry, tmpDir string) (ToolPlugin, error) {
+func processPluginFile(file fs.DirEntry, tmpDir string, category string) (ToolPlugin, error) {
 	fileName := file.Name()
-	scriptPath := filepath.Join("scripts/unverified", fileName)
+	scriptPath := filepath.Join(fmt.Sprintf("scripts/%s", category), fileName)
 
 	// Read content for parsing
 	content, err := scriptsFS.ReadFile(scriptPath)
@@ -276,12 +302,21 @@ func parseMetadata(content string) (ToolPlugin, error) {
 
 // batchInstallApt installs multiple APT packages in a single command using nala or apt.
 // After installation, it runs any post-install tasks defined for each plugin.
-func RunInstall(plugins []ToolPlugin) {
+func RunInstall(plugins []ToolPlugin, category string) {
 	Logger.Info("Starting Itamae setup...")
-	selectedPlugins := selectPlugins(plugins)
-	if len(selectedPlugins) == 0 {
-		Logger.Info("No plugins selected. Exiting.")
-		return
+
+	var selectedPlugins []ToolPlugin
+	if category == "core" {
+		// For core, install everything without prompting
+		Logger.Infof("Installing all %d core packages...\n", len(plugins))
+		selectedPlugins = plugins
+	} else {
+		// For unverified, show multiselect
+		selectedPlugins = selectPlugins(plugins)
+		if len(selectedPlugins) == 0 {
+			Logger.Info("No plugins selected. Exiting.")
+			return
+		}
 	}
 
 	// Gather all required inputs upfront
