@@ -1,4 +1,5 @@
-baseURL = 'https://yjmrobert.github.io/itamae/'
+baseURL = 'https://www.yjmrobert.com/itamae/'
+relativeURLs = true
 languageCode = 'en-us'
 title = 'Itamae'
 theme = 'hextra'
