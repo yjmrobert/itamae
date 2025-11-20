@@ -2,12 +2,32 @@ baseURL = 'https://www.yjmrobert.com/itamae/'
 relativeURLs = true
 languageCode = 'en-us'
 title = 'Itamae'
-theme = 'hextra'
+theme = 'hugo.386'
 
 [module]
   [module.hugoVersion]
     extended = true
     min = "0.112.0"
+
+[params]
+    mainpagetitle = "Itamae"
+    mainpagesubtitle = "A command-line tool to set up a developer's Linux workstation."
+    mainpagedesc = "Itamae is a command-line tool designed to automate the setup of your Linux workstation. It handles dotfiles, packages, and configuration with ease."
+
+    copyrightname = "Itamae Contributors"
+    copyrighturl = "https://github.com/yjmrobert/itamae"
+
+    showhugo = true
+
+    github = "https://github.com/yjmrobert/itamae"
+
+    loadfastload = false
+
+[params.copyright]
+    name = "Itamae Contributors"
+    url = "https://github.com/yjmrobert/itamae"
+    prefix = "Itamae"
+    suffix = "Documentation"
 
 [menu]
   [[menu.main]]
@@ -21,26 +41,3 @@ theme = 'hextra'
     name = "GitHub"
     url = "https://github.com/yjmrobert/itamae"
     weight = 2
-    [menu.main.params]
-      icon = "github"
-
-[params]
-  description = "A command-line tool to set up a developer's Linux workstation."
-
-  # Repository configuration
-  [params.editURL]
-    enable = true
-    base = "https://github.com/yjmrobert/itamae/edit/master/docs/content"
-
-  [params.search]
-    enable = true
-    type = "flexsearch"
-
-  [params.footer]
-    enable = true
-    displayCopyright = true
-    copyright = "© 2025 Itamae Contributors"
-
-  [params.navbar]
-    displayTitle = true
-    displayLogo = true
