@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -89,4 +91,76 @@ func GetDebugLogPath() string {
 	debugLogMux.Lock()
 	defer debugLogMux.Unlock()
 	return debugLogPath
+}
+
+// GetLogDirectory returns the path to the log directory
+func GetLogDirectory() string {
+	return filepath.Join(os.TempDir(), "itamae-logs")
+}
+
+// ListLogFiles returns a sorted list of log files (newest first)
+func ListLogFiles() ([]string, error) {
+	logDir := GetLogDirectory()
+
+	// Check if directory exists
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		return []string{}, nil // No logs yet
+	}
+
+	// Read directory
+	files, err := os.ReadDir(logDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read log directory: %w", err)
+	}
+
+	// Collect log files with their modification times
+	type logFile struct {
+		path    string
+		modTime time.Time
+	}
+	var logFiles []logFile
+
+	for _, file := range files {
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
+			continue
+		}
+
+		fullPath := filepath.Join(logDir, file.Name())
+		info, err := os.Stat(fullPath)
+		if err != nil {
+			continue
+		}
+
+		logFiles = append(logFiles, logFile{
+			path:    fullPath,
+			modTime: info.ModTime(),
+		})
+	}
+
+	// Sort by modification time (newest first)
+	sort.Slice(logFiles, func(i, j int) bool {
+		return logFiles[i].modTime.After(logFiles[j].modTime)
+	})
+
+	// Extract paths
+	result := make([]string, len(logFiles))
+	for i, lf := range logFiles {
+		result[i] = lf.path
+	}
+
+	return result, nil
+}
+
+// GetMostRecentLog returns the path to the most recent log file
+func GetMostRecentLog() (string, error) {
+	logs, err := ListLogFiles()
+	if err != nil {
+		return "", err
+	}
+
+	if len(logs) == 0 {
+		return "", fmt.Errorf("no log files found in %s", GetLogDirectory())
+	}
+
+	return logs[0], nil
 }

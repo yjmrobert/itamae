@@ -285,6 +285,68 @@ The installation interface is built using the [Charm ecosystem](https://charm.sh
 
 The TUI automatically scrolls logs to show the latest output and highlights the currently installing package with a spinner.
 
+## Debug Logging
+
+Itamae automatically saves detailed debug logs to `/tmp/itamae-logs/` during every installation. These logs capture:
+- All commands executed during installation
+- Complete command output (stdout/stderr)
+- Phase transitions and timing information
+- Package status updates and errors
+- TUI lifecycle events
+
+### Viewing Logs
+
+Use the `itamae logs` command to view installation logs:
+
+```bash
+# View most recent log
+itamae logs
+
+# List all available logs
+itamae logs --list
+
+# View a specific log file
+itamae logs --file itamae-install-2024-01-15_14-30-45.log
+
+# Follow a log in real-time (useful for debugging)
+itamae logs --follow
+
+# Filter log lines containing specific text
+itamae logs --grep "error"
+itamae logs --grep "Phase 1"
+
+# Clean up old logs
+itamae logs --clean
+```
+
+### Log Format
+
+Log files use timestamped entries in the format:
+```
+[HH:MM:SS.mmm] Log message
+```
+
+The `itamae logs` command automatically colorizes output using the Tokyo Night theme:
+- Errors are highlighted in red
+- Success messages in green
+- Phase transitions in blue
+- Timestamps in dim gray
+
+For long logs, the command automatically uses a pager (like `less`) for easier navigation.
+
+### Debug Logging in Code
+
+The debug logging system is implemented in `itamae/debug_logger.go` and provides:
+
+- `InitDebugLog()`: Creates log directory and file with timestamp
+- `DebugLog(format, args...)`: Thread-safe logging with mutex protection
+- `CloseDebugLog()`: Closes file and prints location to stdout
+- `GetLogDirectory()`: Returns `/tmp/itamae-logs` path
+- `ListLogFiles()`: Returns sorted list of logs (newest first)
+- `GetMostRecentLog()`: Returns path to most recent log
+
+All logging is thread-safe using `sync.Mutex` to handle concurrent writes from goroutines.
+
 ## Testing
 
 Unit tests for shell script plugins are written in Go (`main_test.go`). This approach was chosen as a compromise to full integration tests due to environment limitations. A `TestMain` function sets up a mock environment that replaces system commands (e.g., `sudo`, `apt-get`) with logging scripts. Tests then assert that the specific, correct install/remove commands are called by verifying the log file's contents.

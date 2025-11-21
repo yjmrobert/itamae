@@ -75,6 +75,13 @@ itamae --version
 Itamae has the following commands:
 
 *   **install:** Run `itamae install` to install a custom set of software.
+*   **logs:** View installation logs from previous runs. Logs are saved to `/tmp/itamae-logs/`.
+    *   `itamae logs` - Show the most recent log
+    *   `itamae logs --list` - List all available logs
+    *   `itamae logs --file <filename>` - View a specific log file
+    *   `itamae logs --follow` - Follow log in real-time (like `tail -f`)
+    *   `itamae logs --grep <text>` - Filter log lines containing specific text
+    *   `itamae logs --clean` - Remove all old log files
 *   **version:** Run `itamae version` or `itamae --version` to display version information.
 
 ## How It Works
