@@ -12,7 +12,7 @@ archetype: home
 ## Features
 
 - 🚀 **Fast Installation** - Optimized batch installation using `nala` or `apt-get` for parallel package downloads
-- 🎨 **Beautiful TUI** - Modern terminal interface with Tokyo Night theme and real-time progress
+- 🎨 **Beautiful TUI** - Modern terminal interface with cyber retro Tokyo Night theme and real-time progress
 - 🔌 **Plugin-Based** - Extensible architecture - easily add new tools via shell scripts
 - 📦 **Smart Batching** - Single-command installation for all APT packages improves speed and dependency resolution
 - 🐛 **Debug Logging** - Comprehensive logs saved to `/tmp/itamae-logs/` for troubleshooting

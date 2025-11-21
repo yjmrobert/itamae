@@ -67,11 +67,20 @@ Output will be in `docs/public/`.
 
 ## Theme
 
-This documentation uses the [Hugo Relearn theme](https://github.com/McShelby/hugo-theme-relearn), which is included as a git submodule.
+This documentation uses the [Hugo Relearn theme](https://github.com/McShelby/hugo-theme-relearn) with a custom **Tokyo Night Cyber Retro** color scheme. The theme is included as a git submodule.
+
+### Custom Styling
+
+The Tokyo Night cyber retro theme includes:
+- **Color Palette**: Deep blue-purple backgrounds with neon cyan, purple, and green accents inspired by Tokyo Night
+- **Typography**: Orbitron and Rajdhani fonts for a retro-futuristic feel, Space Mono for code
+- **Visual Effects**: Subtle neon glows, scanline overlays, animated gradients, and cyber-style borders
+- **Custom CSS**: Located in `static/css/theme-tokyo-night.css` and `static/css/custom.css`
+- **Custom Layout**: `layouts/partials/custom-header.html` loads the fonts and theme CSS
 
 ### Update Theme
 
-To update the theme to the latest version:
+To update the base theme to the latest version:
 
 ```bash
 cd docs/themes/hugo-theme-relearn
