@@ -256,6 +256,8 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case LogMsg:
 		m.addLog(msg.Level, msg.Package, msg.Message)
+		// Auto-scroll log viewport to bottom when new logs arrive
+		m.logViewport.GotoBottom()
 
 	case ErrorMsg:
 		m.errors = append(m.errors, ErrorInfo{
@@ -292,7 +294,7 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-// addLog is a helper to add a log line and update the viewport
+// addLog is a helper to add a log line
 func (m *InstallModel) addLog(level, pkg, message string) {
 	m.logs = append(m.logs, LogLine{
 		Timestamp: time.Now(),
@@ -300,9 +302,7 @@ func (m *InstallModel) addLog(level, pkg, message string) {
 		Package:   pkg,
 		Message:   message,
 	})
-
-	// Auto-scroll log viewport to bottom
-	m.logViewport.GotoBottom()
+	// Note: Auto-scroll is handled in renderLogPane
 }
 
 // View renders the TUI

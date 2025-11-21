@@ -56,7 +56,7 @@ func renderChecklistPane(m InstallModel) string {
 	items = append(items, "") // Spacing
 
 	for _, pkg := range m.packages {
-		icon := ChecklistStyle(pkg.Status).Render("")
+		icon := ChecklistStyle(pkg.Status).String()
 
 		// Format package line
 		var line string
@@ -185,14 +185,10 @@ func renderLogPane(m InstallModel) string {
 
 	content := strings.Join(items, "\n")
 
-	// Set viewport content
+	// Set viewport content (this is safe to do in View)
 	m.logViewport.SetContent(content)
 
-	// Auto-scroll to bottom on new content
-	if len(m.logs) > 0 {
-		m.logViewport.GotoBottom()
-	}
-
+	// Get viewport view
 	viewportContent := m.logViewport.View()
 
 	// Wrap in styled pane
