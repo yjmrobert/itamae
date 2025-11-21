@@ -1,5 +1,17 @@
-<!-- Minimal custom styling -->
+<!-- Subtle Tokyo Night theme styling -->
 {{- $assetBusting := partialCached "assetbusting.gotmpl" . }}
+
+<!-- Tokyo Night theme variables -->
+{{- $filePath := "css/theme-tokyo-night.css" }}
+{{- with (resources.Get (printf "/%s" $filePath)) }}
+    <link href="{{ .RelPermalink }}{{ $assetBusting }}" rel="stylesheet">
+{{- else }}
+  {{- if (fileExists (printf "/static/%s" $filePath)) }}
+    <link href="{{ printf "%s" $filePath | relURL }}{{ $assetBusting }}" rel="stylesheet">
+  {{- end }}
+{{- end }}
+
+<!-- Custom styling -->
 {{- $filePath := "css/custom.css" }}
 {{- with (resources.Get (printf "/%s" $filePath)) }}
     <link href="{{ .RelPermalink }}{{ $assetBusting }}" rel="stylesheet">

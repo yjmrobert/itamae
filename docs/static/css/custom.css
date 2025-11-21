@@ -1,4 +1,4 @@
-/* Minimal Clean Styling */
+/* Minimal Clean Styling with Tokyo Night */
 
 /* Simple, readable typography */
 body {
@@ -6,10 +6,22 @@ body {
   line-height: 1.6;
 }
 
-/* Clean headings */
+/* Clean headings with subtle color */
 h1, h2, h3, h4, h5, h6 {
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
+}
+
+h1 {
+  color: rgba(187, 154, 247, 1);
+}
+
+h2 {
+  color: rgba(122, 162, 247, 1);
+}
+
+h3 {
+  color: rgba(115, 218, 202, 1);
 }
 
 /* Basic code styling */
@@ -20,6 +32,17 @@ code {
 
 pre code {
   padding: 0;
+}
+
+pre {
+  padding: 1rem;
+}
+
+/* Subtle active menu item indicator */
+body #R-sidebar li.active > label,
+body #R-sidebar li.active > :is(a, span) {
+  border-left: 2px solid rgba(187, 154, 247, 0.8);
+  padding-left: 8px;
 }
 
 /* Simple responsive adjustments */

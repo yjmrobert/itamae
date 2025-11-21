@@ -1,1 +1,50 @@
-/* Removed - using default theme colors */
+/* Subtle Tokyo Night Theme */
+
+:root {
+  /* Tokyo Night color palette - subtle application */
+  --PRIMARY-color: rgba(122, 162, 247, 1); /* soft blue */
+  --SECONDARY-color: rgba(115, 218, 202, 1); /* teal */
+  --ACCENT-color: rgba(187, 154, 247, 1); /* purple */
+  
+  /* Main content */
+  --MAIN-TEXT-color: rgba(192, 202, 245, 1);
+  --MAIN-BG-color: rgba(26, 27, 38, 1);
+  --MAIN-TITLES-TEXT-color: rgba(187, 154, 247, 1);
+  
+  /* Links */
+  --MAIN-LINK-color: rgba(122, 162, 247, 1);
+  --MAIN-LINK-HOVER-color: rgba(187, 154, 247, 1);
+  
+  /* Code blocks */
+  --CODE-BLOCK-BG-color: rgba(30, 32, 48, 1);
+  --CODE-BLOCK-BORDER-color: rgba(70, 75, 100, 0.5);
+  --CODE-INLINE-color: rgba(187, 154, 247, 1);
+  --CODE-INLINE-BG-color: rgba(30, 32, 48, 0.8);
+  --CODE-INLINE-BORDER-color: rgba(70, 75, 100, 0.5);
+  
+  /* Menu */
+  --MENU-HEADER-BG-color: rgba(22, 23, 34, 1);
+  --MENU-SECTIONS-BG-color: rgba(26, 27, 38, 1);
+  --MENU-SECTIONS-ACTIVE-BG-color: rgba(122, 162, 247, 0.15);
+  --MENU-SECTIONS-LINK-color: rgba(192, 202, 245, 0.9);
+  --MENU-SECTIONS-LINK-HOVER-color: rgba(122, 162, 247, 1);
+  --MENU-SECTION-ACTIVE-CATEGORY-color: rgba(187, 154, 247, 1);
+  
+  /* Boxes */
+  --BOX-BG-color: rgba(30, 32, 48, 1);
+  --BOX-TEXT-color: rgba(192, 202, 245, 1);
+}
+
+/* Subtle enhancements */
+body a {
+  transition: color 0.2s ease;
+}
+
+body code {
+  border-radius: 3px;
+}
+
+body pre {
+  border-radius: 4px;
+  border: 1px solid rgba(70, 75, 100, 0.5);
+}

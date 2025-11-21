@@ -13,8 +13,8 @@ home = ['HTML', 'RSS']
   disableLanguageSwitchingButton = true
   disableShortcutsTitle = true
   
-  # Theme variant - simple light theme
-  themeVariant = 'relearn-light'
+  # Theme variant - subtle Tokyo Night dark theme
+  themeVariant = 'relearn-dark'
   
   # Description for SEO
   description = 'Itamae - A command-line tool for setting up Linux development workstations'
@@ -39,5 +39,5 @@ home = ['HTML', 'RSS']
     lineNos = false
     lineNumbersInTable = false
     noClasses = true
-    style = 'github'
+    style = 'monokai'
     tabWidth = 4
