@@ -30,30 +30,12 @@ type pluginAssertion struct {
 var pluginAssertions = map[string]pluginAssertion{
 	// Core plugins (OMAKASE: true)
 	"ansible":             {install: "pipx install", remove: "pipx uninstall ansible"},
-	"apt-transport-https": {install: "sudo nala install -y apt-transport-https", remove: "sudo apt-get purge -y apt-transport-https"},
-	"atuin":               {install: "bash", remove: "bash -s -- --uninstall"},
-	"bat":                 {install: "sudo nala install -y bat", remove: "sudo apt-get purge -y bat"},
 	"bin":                 {install: "curl -sL", remove: "rm -f"},
 	"btop":                {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
-	"ca-certificates":     {install: "sudo nala install -y ca-certificates", remove: "sudo apt-get purge -y ca-certificates"},
-	"curl":                {install: "sudo nala install -y curl", remove: "sudo apt-get purge -y curl"},
-	"fd":                  {install: "sudo nala install -y fd-find", remove: "sudo apt-get purge -y fd-find"},
-	"fzf":                 {install: "sudo nala install -y fzf", remove: "sudo apt-get purge -y fzf"},
-	"gh":                  {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y gh"},
-	"git":                 {install: "sudo nala install -y git", remove: "sudo apt-get purge -y git"},
-	"gnupg":               {install: "sudo nala install -y gnupg", remove: "sudo apt-get purge -y gnupg"},
 	"httpie":              {install: "sudo nala install -y httpie", remove: "sudo apt-get purge -y httpie"},
-	"java":                {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y temurin-21-jdk"},
-	"maven":               {install: "wget", remove: "sudo rm -rf /opt/maven"},
-	"nala":                {install: "sudo apt-get install -y nala", remove: "sudo apt-get purge -y nala"},
 	"pass":                {install: "sudo nala install -y pass", remove: "sudo apt-get purge -y pass"},
-	"ripgrep":             {install: "sudo nala install -y ripgrep", remove: "sudo apt-get purge -y ripgrep"},
 	"ruby":                {install: "sudo nala install -y ruby-full", remove: "sudo apt-get purge -y ruby-full"},
-	"rust":                {install: "curl --proto", remove: "rustup self uninstall -y"},
-	"sdkman":              {install: "curl -s", remove: "rm -rf"},
 	"semgrep":             {install: "pipx install semgrep", remove: "pipx uninstall semgrep"},
-	"starship":            {install: "curl -sS https://starship.rs/install.sh", remove: "sh -c rm \"$(command -v starship)\""},
-	"stow":                {install: "sudo nala install -y stow", remove: "sudo apt-get purge -y stow"},
 	"tldr":                {install: "curl -L https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-x86_64-musl", remove: "rm"},
 	"vscode":              {install: "sudo apt-get install -y /tmp/vscode-itamae.deb", remove: "sudo apt-get purge -y code"},
 	"helm":                {install: "curl --silent", remove: "sudo rm -f /usr/local/bin/helm"},
@@ -71,6 +53,26 @@ var pluginAssertions = map[string]pluginAssertion{
 	"wget":                {install: "sudo nala install -y wget", remove: "sudo apt-get purge -y wget"},
 	"wireguard":           {install: "sudo nala install -y wireguard", remove: "sudo apt-get purge -y wireguard"},
 	"yq":                  {install: "sudo curl --silent", remove: "sudo rm /usr/local/bin/yq"},
+	"curl":                {install: "sudo nala install -y curl", remove: "sudo apt-get purge -y curl"},
+	"apt-transport-https": {install: "sudo nala install -y apt-transport-https", remove: "sudo apt-get purge -y apt-transport-https"},
+	"ca-certificates":     {install: "sudo nala install -y ca-certificates", remove: "sudo apt-get purge -y ca-certificates"},
+	"gnupg":               {install: "sudo nala install -y gnupg", remove: "sudo apt-get purge -y gnupg"},
+	"nala":                {install: "sudo apt-get install -y nala", remove: "sudo apt-get purge -y nala"},
+	"fd":                  {install: "sudo nala install -y fd-find", remove: "sudo apt-get purge -y fd-find"},
+	"fzf":                 {install: "sudo nala install -y fzf", remove: "sudo apt-get purge -y fzf"},
+	"gh":                  {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y gh"},
+
+	// Essentials plugins (common developer extras)
+	"stow":     {install: "sudo nala install -y stow", remove: "sudo apt-get purge -y stow"},
+	"ripgrep":  {install: "sudo nala install -y ripgrep", remove: "sudo apt-get purge -y ripgrep"},
+	"bat":      {install: "sudo nala install -y bat", remove: "sudo apt-get purge -y bat"},
+	"zoxide":   {install: "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh", remove: "rm"},
+	"starship": {install: "curl -sS https://starship.rs/install.sh", remove: "sh -c rm \"$(command -v starship)\""},
+	"atuin":    {install: "bash", remove: "bash -s -- --uninstall"},
+	"rust":     {install: "curl --proto", remove: "rustup self uninstall -y"},
+	"sdkman":   {install: "curl -s", remove: "rm -rf"},
+	"java":     {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y temurin-21-jdk"},
+	"maven":    {install: "wget", remove: "sudo rm -rf /opt/maven"},
 
 	// À la carte plugins (OMAKASE: false)
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
@@ -84,7 +86,6 @@ var pluginAssertions = map[string]pluginAssertion{
 	"polybar":       {install: "sudo nala install -y polybar", remove: "sudo apt-get purge -y polybar"},
 	"rofi":          {install: "sudo nala install -y rofi", remove: "sudo apt-get purge -y rofi"},
 	"zellij":        {install: "curl -L https://github.com/zellij-project/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz", remove: "sudo rm /usr/local/bin/zellij"},
-	"zoxide":        {install: "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh", remove: "rm"},
 	"zsh":           {install: "sudo nala install -y zsh", remove: "sudo apt-get purge -y zsh"},
 } // TestMain sets up the test environment for the entire package.
 func TestMain(m *testing.M) {
@@ -213,8 +214,6 @@ func TestMetadataParsing(t *testing.T) {
 		"alacritty":           "apt",
 		"ansible":             "binary",
 		"apt-transport-https": "apt",
-		"atuin":               "binary",
-		"bat":                 "apt",
 		"bin":                 "binary",
 		"btop":                "apt",
 		"ca-certificates":     "apt",
@@ -227,30 +226,36 @@ func TestMetadataParsing(t *testing.T) {
 		"gnupg":               "apt",
 		"helm":                "binary",
 		"httpie":              "apt",
-		"java":                "binary",
 		"jq":                  "apt",
 		"kubectl":             "binary",
+		"kubecolor":           "binary",
 		"lsd":                 "apt",
-		"maven":               "binary",
 		"nala":                "apt",
 		"nodejs":              "binary",
 		"npm":                 "apt",
 		"pass":                "apt",
 		"pipx":                "apt",
 		"python3-full":        "apt",
-		"ripgrep":             "apt",
 		"ruby":                "apt",
-		"rust":                "binary",
-		"sdkman":              "binary",
 		"semgrep":             "binary",
-		"starship":            "binary",
-		"stow":                "apt",
 		"task":                "binary",
 		"tldr":                "binary",
 		"vscode":              "binary",
 		"wget":                "apt",
 		"wireguard":           "apt",
 		"yq":                  "binary",
+
+		// Essentials plugins (common developer extras)
+		"stow":     "apt",
+		"ripgrep":  "apt",
+		"bat":      "apt",
+		"zoxide":   "binary",
+		"starship": "binary",
+		"atuin":    "binary",
+		"rust":     "binary",
+		"sdkman":   "binary",
+		"java":     "binary",
+		"maven":    "binary",
 
 		// À la carte plugins (OMAKASE: false)
 		"btop-desktop":  "apt",
@@ -259,13 +264,11 @@ func TestMetadataParsing(t *testing.T) {
 		"dunst":         "apt",
 		"flameshot":     "apt",
 		"ghostty":       "manual",
-		"kubecolor":     "binary",
 		"meld":          "apt",
 		"ncdu":          "apt",
 		"polybar":       "apt",
 		"rofi":          "apt",
 		"zellij":        "binary",
-		"zoxide":        "binary",
 		"zsh":           "apt",
 	}
 
@@ -273,7 +276,6 @@ func TestMetadataParsing(t *testing.T) {
 		// Core plugins
 		"alacritty":           "alacritty",
 		"apt-transport-https": "apt-transport-https",
-		"bat":                 "bat",
 		"btop":                "btop",
 		"ca-certificates":     "ca-certificates",
 		"curl":                "curl",
@@ -289,11 +291,14 @@ func TestMetadataParsing(t *testing.T) {
 		"pass":                "pass",
 		"pipx":                "pipx",
 		"python3-full":        "python3-full",
-		"ripgrep":             "ripgrep",
 		"ruby":                "ruby-full",
-		"stow":                "stow",
 		"wget":                "wget",
 		"wireguard":           "wireguard",
+
+		// Essentials plugins
+		"stow":    "stow",
+		"ripgrep": "ripgrep",
+		"bat":     "bat",
 
 		// À la carte plugins
 		"btop-desktop": "btop",
@@ -363,10 +368,10 @@ func TestBatchInstallSeparation(t *testing.T) {
 	}
 
 	// Expected counts for Core plugins
-	// APT: git, alacritty, jq, lsd, npm, python3-full, pipx, wget, wireguard = 9
-	expectedAptCount := 9
-	// Binary: helm, kubectl, task, dotnet-sdk-8.0, kubecolor, nodejs, yq = 7
-	expectedBinaryCount := 7
+	// APT: git, alacritty, jq, lsd, npm, python3-full, pipx, wget, wireguard, curl, apt-transport-https, ca-certificates, gnupg, nala, fd, fzf = 16
+	expectedAptCount := 16
+	// Binary: helm, kubectl, task, dotnet-sdk-8.0, kubecolor, nodejs, yq, gh = 8
+	expectedBinaryCount := 8
 
 	if len(aptPlugins) != expectedAptCount {
 		t.Errorf("Expected %d Core APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))

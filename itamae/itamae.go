@@ -15,7 +15,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-//go:embed scripts/core/* scripts/unverified/*
+//go:embed scripts/core/* scripts/essentials/* scripts/unverified/*
 var scriptsFS embed.FS
 
 type Input struct {
@@ -206,6 +206,7 @@ func SelectCategory() (string, error) {
 				Description("Choose which category of packages to install").
 				Options(
 					huh.NewOption("Core - Install all essential packages", "core"),
+					huh.NewOption("Essentials - Install common developer extras", "essentials"),
 					huh.NewOption("Unverified - Select individual packages", "unverified"),
 				).
 				Value(&category),

@@ -83,8 +83,9 @@ Itamae uses a Go binary to orchestrate shell scripts located in the `scripts/` d
 
 ### Installation Process
 
-1. **Category Selection:** Choose between two categories:
-   - **Core:** Installs all essential development tools automatically (no individual selection)
+1. **Category Selection:** Choose between three categories:
+   - **Core:** Installs all essential development tools automatically (git, kubectl, helm, nodejs, npm, python, etc.)
+   - **Essentials:** Installs common developer extras automatically (stow, ripgrep, bat, zoxide, starship, atuin, rust, java, maven, sdkman)
    - **Unverified:** Interactive multi-select to choose specific packages
 2. **Package Selection:** (Unverified only) Choose which tools to install using an interactive multi-select form
 3. **Confirmation:** Review and confirm the installation plan
