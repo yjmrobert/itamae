@@ -15,7 +15,7 @@ install() {
     KUBECOLOR_VERSION=$(curl -s https://api.github.com/repos/kubecolor/kubecolor/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
     
     # Download and install
-    wget https://github.com/kubecolor/kubecolor/releases/download/${KUBECOLOR_VERSION}/kubecolor_${KUBECOLOR_VERSION#v}_linux_amd64.tar.gz -P /tmp
+    wget -q https://github.com/kubecolor/kubecolor/releases/download/${KUBECOLOR_VERSION}/kubecolor_${KUBECOLOR_VERSION#v}_linux_amd64.tar.gz -P /tmp
     tar -xzf /tmp/kubecolor_${KUBECOLOR_VERSION#v}_linux_amd64.tar.gz -C /tmp
     mkdir -p "$BINDIR"
     mv /tmp/kubecolor "$BINDIR/"

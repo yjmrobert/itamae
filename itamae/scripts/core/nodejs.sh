@@ -9,7 +9,7 @@
 install() {
     echo "Installing Node.js..."
     # Add NodeSource repository
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+    curl --silent -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     if command -v nala &> /dev/null; then
         sudo nala install -y nodejs
     else

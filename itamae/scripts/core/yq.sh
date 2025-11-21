@@ -10,7 +10,7 @@ install() {
     echo "Installing yq (Go binary)..."
     # This is critical: apt 'yq' is the wrong tool.
     local YQ_URL="https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
-    sudo curl -L "$YQ_URL" -o /usr/local/bin/yq
+    sudo curl --silent -L "$YQ_URL" -o /usr/local/bin/yq
     sudo chmod +x /usr/local/bin/yq
     echo "✅ yq installed."
 }

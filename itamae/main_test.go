@@ -37,7 +37,6 @@ var pluginAssertions = map[string]pluginAssertion{
 	"btop":                {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
 	"ca-certificates":     {install: "sudo nala install -y ca-certificates", remove: "sudo apt-get purge -y ca-certificates"},
 	"curl":                {install: "sudo nala install -y curl", remove: "sudo apt-get purge -y curl"},
-	"dotnet-sdk-8.0":      {install: "wget", remove: "sudo apt-get purge -y dotnet-sdk-8.0"},
 	"fd":                  {install: "sudo nala install -y fd-find", remove: "sudo apt-get purge -y fd-find"},
 	"fzf":                 {install: "sudo nala install -y fzf", remove: "sudo apt-get purge -y fzf"},
 	"gh":                  {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y gh"},
@@ -45,15 +44,9 @@ var pluginAssertions = map[string]pluginAssertion{
 	"gnupg":               {install: "sudo nala install -y gnupg", remove: "sudo apt-get purge -y gnupg"},
 	"httpie":              {install: "sudo nala install -y httpie", remove: "sudo apt-get purge -y httpie"},
 	"java":                {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y temurin-21-jdk"},
-	"jq":                  {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
-	"lsd":                 {install: "sudo nala install -y lsd", remove: "sudo apt-get purge -y lsd"},
 	"maven":               {install: "wget", remove: "sudo rm -rf /opt/maven"},
 	"nala":                {install: "sudo apt-get install -y nala", remove: "sudo apt-get purge -y nala"},
-	"nodejs":              {install: "curl -fsSL", remove: "sudo apt-get purge -y nodejs"},
-	"npm":                 {install: "sudo nala install -y npm", remove: "sudo apt-get purge -y npm"},
 	"pass":                {install: "sudo nala install -y pass", remove: "sudo apt-get purge -y pass"},
-	"pipx":                {install: "sudo nala install -y pipx", remove: "sudo apt-get purge -y pipx"},
-	"python3-full":        {install: "sudo nala install -y python3-full", remove: "sudo apt-get purge -y python3-full"},
 	"ripgrep":             {install: "sudo nala install -y ripgrep", remove: "sudo apt-get purge -y ripgrep"},
 	"ruby":                {install: "sudo nala install -y ruby-full", remove: "sudo apt-get purge -y ruby-full"},
 	"rust":                {install: "curl --proto", remove: "rustup self uninstall -y"},
@@ -63,13 +56,21 @@ var pluginAssertions = map[string]pluginAssertion{
 	"stow":                {install: "sudo nala install -y stow", remove: "sudo apt-get purge -y stow"},
 	"tldr":                {install: "curl -L https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-x86_64-musl", remove: "rm"},
 	"vscode":              {install: "sudo apt-get install -y /tmp/vscode-itamae.deb", remove: "sudo apt-get purge -y code"},
-	"wget":                {install: "sudo nala install -y wget", remove: "sudo apt-get purge -y wget"},
-	"wireguard":           {install: "sudo nala install -y wireguard", remove: "sudo apt-get purge -y wireguard"},
-	"yq":                  {install: "sudo curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq", remove: "sudo rm /usr/local/bin/yq"},
 	"helm":                {install: "curl --silent", remove: "sudo rm -f /usr/local/bin/helm"},
 	"kubectl":             {install: "curl -sLO", remove: "sudo rm -f /usr/local/bin/kubectl"},
 	"task":                {install: "curl --silent", remove: "rm -f"},
 	"alacritty":           {install: "sudo nala install -y alacritty", remove: "sudo apt-get purge -y alacritty"},
+	"dotnet-sdk-8.0":      {install: "wget -q", remove: "sudo apt-get purge -y dotnet-sdk-8.0"},
+	"jq":                  {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
+	"kubecolor":           {install: "curl -s", remove: "rm -f"},
+	"lsd":                 {install: "sudo nala install -y lsd", remove: "sudo apt-get purge -y lsd"},
+	"nodejs":              {install: "curl --silent", remove: "sudo apt-get purge -y nodejs"},
+	"npm":                 {install: "sudo nala install -y npm", remove: "sudo apt-get purge -y npm"},
+	"python3-full":        {install: "sudo nala install -y python3-full", remove: "sudo apt-get purge -y python3-full"},
+	"pipx":                {install: "sudo nala install -y pipx", remove: "sudo apt-get purge -y pipx"},
+	"wget":                {install: "sudo nala install -y wget", remove: "sudo apt-get purge -y wget"},
+	"wireguard":           {install: "sudo nala install -y wireguard", remove: "sudo apt-get purge -y wireguard"},
+	"yq":                  {install: "sudo curl --silent", remove: "sudo rm /usr/local/bin/yq"},
 
 	// À la carte plugins (OMAKASE: false)
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
@@ -78,7 +79,6 @@ var pluginAssertions = map[string]pluginAssertion{
 	"dunst":         {install: "sudo nala install -y dunst", remove: "sudo apt-get purge -y dunst"},
 	"flameshot":     {install: "sudo nala install -y flameshot", remove: "sudo apt-get purge -y flameshot"},
 	"ghostty":       {install: "mkdir -p", remove: "rm -f"},
-	"kubecolor":     {install: "curl -s", remove: "rm -f"},
 	"meld":          {install: "sudo nala install -y meld", remove: "sudo apt-get purge -y meld"},
 	"ncdu":          {install: "sudo nala install -y ncdu", remove: "sudo apt-get purge -y ncdu"},
 	"polybar":       {install: "sudo nala install -y polybar", remove: "sudo apt-get purge -y polybar"},
@@ -363,10 +363,10 @@ func TestBatchInstallSeparation(t *testing.T) {
 	}
 
 	// Expected counts for Core plugins
-	// APT: git, alacritty = 2
-	expectedAptCount := 2
-	// Binary: helm, kubectl, task = 3
-	expectedBinaryCount := 3
+	// APT: git, alacritty, jq, lsd, npm, python3-full, pipx, wget, wireguard = 9
+	expectedAptCount := 9
+	// Binary: helm, kubectl, task, dotnet-sdk-8.0, kubecolor, nodejs, yq = 7
+	expectedBinaryCount := 7
 
 	if len(aptPlugins) != expectedAptCount {
 		t.Errorf("Expected %d Core APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))

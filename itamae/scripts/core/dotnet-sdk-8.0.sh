@@ -10,7 +10,7 @@ install() {
     echo "Installing .NET SDK 8.0..."
     
     # Add Microsoft package repository
-    wget https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb
+    wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb
     sudo dpkg -i /tmp/packages-microsoft-prod.deb
     rm /tmp/packages-microsoft-prod.deb
     
