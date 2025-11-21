@@ -23,7 +23,7 @@ var installCmd = &cobra.Command{
 			return
 		}
 		defer cleanup()
-		itamae.RunInstall(plugins, category)
+		itamae.RunInstallTUI(plugins, category)
 	},
 }
 
