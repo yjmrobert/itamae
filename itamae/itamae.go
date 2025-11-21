@@ -19,8 +19,9 @@ import (
 var scriptsFS embed.FS
 
 type Input struct {
-	Name   string
-	Prompt string
+	Name       string
+	Prompt     string
+	DefaultCmd string // Command to retrieve existing/default value
 }
 
 type ToolPlugin struct {
@@ -56,25 +57,25 @@ func confirmInstallation() bool {
 }
 
 func displayInstallationSummary(successful, failed []string) {
-	Logger.Info("\n" + strings.Repeat("=", 60))
-	Logger.Info("📊 INSTALLATION SUMMARY")
-	Logger.Info(strings.Repeat("=", 60))
+	fmt.Println("\n" + strings.Repeat("═", 60))
+	fmt.Println("📊 INSTALLATION SUMMARY")
+	fmt.Println(strings.Repeat("═", 60))
 
 	if len(successful) > 0 {
-		Logger.Info("\n✅ Successfully installed:")
+		fmt.Println("\n✅ Successfully installed:")
 		for _, name := range successful {
-			Logger.Infof("  • %s\n", name)
+			fmt.Printf("   • %s\n", name)
 		}
 	}
 
 	if len(failed) > 0 {
-		Logger.Info("\n❌ Failed to install:")
+		fmt.Println("\n❌ Failed to install:")
 		for _, name := range failed {
-			Logger.Infof("  • %s\n", name)
+			fmt.Printf("   • %s\n", name)
 		}
 	}
 
-	Logger.Info("\n" + strings.Repeat("=", 60))
+	fmt.Println("\n" + strings.Repeat("═", 60))
 }
 
 func countPostInstalls(plugins []ToolPlugin) int {
@@ -103,8 +104,34 @@ var newFormRunner = func(form *huh.Form) formRunner {
 	return &realFormRunner{form: form}
 }
 
-func RunTextInput(question string) (string, error) {
-	var value string
+// ensureSudoAccess prompts for sudo password upfront to avoid interruptions during installation.
+func ensureSudoAccess() error {
+	fmt.Println("\n🔐 Requesting sudo access for installation...")
+	cmd := exec.Command("sudo", "-v")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// getDefaultValue executes a command to retrieve an existing/default value.
+// Returns empty string on error (silent failure for better UX).
+func getDefaultValue(command string) string {
+	if command == "" {
+		return ""
+	}
+
+	cmd := exec.Command("bash", "-c", command)
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(output))
+}
+
+func RunTextInput(question string, defaultValue string) (string, error) {
+	value := defaultValue // Pre-populate with default value
 
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -285,12 +312,16 @@ func parseMetadata(content string) (ToolPlugin, error) {
 		case "POST_INSTALL":
 			plugin.PostInstall = value
 		case "REQUIRES":
-			parts := strings.SplitN(value, "|", 2)
-			if len(parts) == 2 {
-				plugin.RequiredInputs = append(plugin.RequiredInputs, Input{
+			parts := strings.SplitN(value, "|", 3)
+			if len(parts) >= 2 {
+				input := Input{
 					Name:   parts[0],
 					Prompt: parts[1],
-				})
+				}
+				if len(parts) == 3 {
+					input.DefaultCmd = parts[2]
+				}
+				plugin.RequiredInputs = append(plugin.RequiredInputs, input)
 			}
 		}
 	}
@@ -303,18 +334,24 @@ func parseMetadata(content string) (ToolPlugin, error) {
 // batchInstallApt installs multiple APT packages in a single command using nala or apt.
 // After installation, it runs any post-install tasks defined for each plugin.
 func RunInstall(plugins []ToolPlugin, category string) {
-	Logger.Info("Starting Itamae setup...")
+	fmt.Println("\n🚀 Starting Itamae setup...")
+
+	// Request sudo access upfront to avoid interruptions during installation
+	if err := ensureSudoAccess(); err != nil {
+		fmt.Println("\n❌ Failed to obtain sudo access. Installation cancelled.")
+		return
+	}
 
 	var selectedPlugins []ToolPlugin
 	if category == "core" {
 		// For core, install everything without prompting
-		Logger.Infof("Installing all %d core packages...\n", len(plugins))
+		fmt.Printf("Installing %d core packages\n", len(plugins))
 		selectedPlugins = plugins
 	} else {
 		// For unverified, show multiselect
 		selectedPlugins = selectPlugins(plugins)
 		if len(selectedPlugins) == 0 {
-			Logger.Info("No plugins selected. Exiting.")
+			fmt.Println("No plugins selected. Exiting.")
 			return
 		}
 	}
@@ -324,7 +361,8 @@ func RunInstall(plugins []ToolPlugin, category string) {
 	for _, p := range selectedPlugins {
 		for _, input := range p.RequiredInputs {
 			if _, ok := requiredInputs[input.Name]; !ok {
-				value, err := RunTextInput(input.Prompt)
+				defaultValue := getDefaultValue(input.DefaultCmd)
+				value, err := RunTextInput(input.Prompt, defaultValue)
 				if err != nil {
 					Logger.Errorf("Error getting input for %s: %v", input.Name, err)
 					return
@@ -336,7 +374,7 @@ func RunInstall(plugins []ToolPlugin, category string) {
 
 	// Confirm before proceeding
 	if !confirmInstallation() {
-		Logger.Info("Installation cancelled.")
+		fmt.Println("\nInstallation cancelled.")
 		return
 	}
 
@@ -375,7 +413,7 @@ func processInstall(selectedPlugins []ToolPlugin, requiredInputs map[string]stri
 
 	// Phase 2: Install other plugins individually
 	for _, p := range otherPlugins {
-		Logger.Infof("\n--- Installing %s ---\n", p.Name)
+		fmt.Printf("\n▶️  Installing %s...\n", p.Name)
 		if err := executeScript(p, "install", requiredInputs); err != nil {
 			Logger.Errorf("❌ Error installing %s: %v\n", p.Name, err)
 			failed = append(failed, p.Name)
@@ -387,7 +425,7 @@ func processInstall(selectedPlugins []ToolPlugin, requiredInputs map[string]stri
 	// Display summary
 	displayInstallationSummary(successful, failed)
 
-	Logger.Info("\n✅ Itamae setup complete!")
+	fmt.Println("\n✅ Itamae setup complete!")
 }
 
 func selectPlugins(plugins []ToolPlugin) []ToolPlugin {
@@ -395,7 +433,7 @@ func selectPlugins(plugins []ToolPlugin) []ToolPlugin {
 		return []ToolPlugin{}
 	}
 
-	Logger.Info("📦 Select the tools you'd like to install:")
+	fmt.Println("\n📦 Select the tools you'd like to install:")
 
 	options := []huh.Option[string]{}
 	for _, p := range plugins {
@@ -419,7 +457,7 @@ func selectPlugins(plugins []ToolPlugin) []ToolPlugin {
 	runner := newFormRunner(form)
 	err := runner.Run()
 	if err != nil {
-		Logger.Errorf("Error: %v\n", err)
+		fmt.Printf("Error: %v\n", err)
 		return []ToolPlugin{}
 	}
 
@@ -443,7 +481,7 @@ func batchInstallApt(plugins []ToolPlugin, env map[string]string) error {
 		return nil
 	}
 
-	Logger.Infof("\n⏳ Installing %d APT packages...\n\n", len(plugins))
+	fmt.Printf("\n📦 Installing %d APT package(s)\n", len(plugins))
 
 	// Check if nala is available
 	_, err := exec.LookPath("nala")
@@ -454,12 +492,12 @@ func batchInstallApt(plugins []ToolPlugin, env map[string]string) error {
 	for _, p := range plugins {
 		if p.PackageName != "" {
 			packages = append(packages, p.PackageName)
-			Logger.Infof("  • %s (%s)\n", p.Name, p.PackageName)
+			fmt.Printf("   • %s\n", p.Name)
 		}
 	}
 
 	if len(packages) == 0 {
-		Logger.Info("No APT packages to install.")
+		fmt.Println("No APT packages to install.")
 		return nil
 	}
 
@@ -468,11 +506,11 @@ func batchInstallApt(plugins []ToolPlugin, env map[string]string) error {
 	if useNala {
 		args := append([]string{"nala", "install", "-y"}, packages...)
 		cmd = exec.Command("sudo", args...)
-		Logger.Infof("\n▶️  Running: sudo nala install -y %s\n\n", strings.Join(packages, " "))
+		fmt.Println()
 	} else {
 		args := append([]string{"apt", "install", "-y"}, packages...)
 		cmd = exec.Command("sudo", args...)
-		Logger.Infof("\n▶️  Running: sudo apt install -y %s\n\n", strings.Join(packages, " "))
+		fmt.Println()
 	}
 
 	// Execute with live output
@@ -484,18 +522,18 @@ func batchInstallApt(plugins []ToolPlugin, env map[string]string) error {
 		return fmt.Errorf("batch APT installation failed: %w", err)
 	}
 
-	Logger.Infof("\n✅ Successfully installed %d APT packages\n", len(plugins))
+	fmt.Printf("\n✅ Successfully installed %d APT package(s)\n", len(plugins))
 
 	// Run post-install tasks with progress
 	if hasPostInstall := countPostInstalls(plugins); hasPostInstall > 0 {
-		Logger.Info("\n⚙️  Running post-installation tasks...\n")
+		fmt.Println("\n⚙️  Running post-installation tasks...")
 		for _, p := range plugins {
 			if p.PostInstall != "" {
-				Logger.Infof("  • %s... ", p.Name)
+				fmt.Printf("   • %s... ", p.Name)
 				if err := executeScript(p, "post_install", env); err != nil {
-					Logger.Error("❌ failed\n")
+					fmt.Println("❌")
 				} else {
-					Logger.Info("✅\n")
+					fmt.Println("✅")
 				}
 			}
 		}

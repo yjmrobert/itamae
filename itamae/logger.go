@@ -7,8 +7,8 @@ import (
 )
 
 var Logger = log.NewWithOptions(os.Stderr, log.Options{
-	ReportCaller:    true,
-	ReportTimestamp: true,
+	ReportCaller:    false,
+	ReportTimestamp: false,
 	TimeFormat:      "2006-01-02 15:04:05",
 	Level:           log.InfoLevel,
 })

@@ -47,7 +47,6 @@ var pluginAssertions = map[string]pluginAssertion{
 	"httpie":              {install: "sudo nala install -y httpie", remove: "sudo apt-get purge -y httpie"},
 	"java":                {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y temurin-21-jdk"},
 	"jq":                  {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
-	"kubectl":             {install: "curl -LO", remove: "sudo rm -f /usr/local/bin/kubectl"},
 	"lsd":                 {install: "sudo nala install -y lsd", remove: "sudo apt-get purge -y lsd"},
 	"maven":               {install: "wget", remove: "sudo rm -rf /opt/maven"},
 	"nala":                {install: "sudo apt-get install -y nala", remove: "sudo apt-get purge -y nala"},
@@ -69,7 +68,8 @@ var pluginAssertions = map[string]pluginAssertion{
 	"wget":                {install: "sudo nala install -y wget", remove: "sudo apt-get purge -y wget"},
 	"wireguard":           {install: "sudo nala install -y wireguard", remove: "sudo apt-get purge -y wireguard"},
 	"yq":                  {install: "sudo curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq", remove: "sudo rm /usr/local/bin/yq"},
-	"helm":                {install: "curl", remove: "sudo rm -f /usr/local/bin/helm"},
+	"helm":                {install: "curl --silent", remove: "sudo rm -f /usr/local/bin/helm"},
+	"kubectl":             {install: "curl -sLO", remove: "sudo rm -f /usr/local/bin/kubectl"},
 
 	// À la carte plugins (OMAKASE: false)
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
@@ -365,8 +365,8 @@ func TestBatchInstallSeparation(t *testing.T) {
 	// Expected counts for Core plugins
 	// APT: git = 1
 	expectedAptCount := 1
-	// Binary: helm = 1
-	expectedBinaryCount := 1
+	// Binary: helm, kubectl = 2
+	expectedBinaryCount := 2
 
 	if len(aptPlugins) != expectedAptCount {
 		t.Errorf("Expected %d Core APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))

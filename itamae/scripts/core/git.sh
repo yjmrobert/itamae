@@ -5,8 +5,8 @@
 # DESCRIPTION: A free and open source distributed version control system.
 # INSTALL_METHOD: apt
 # PACKAGE_NAME: git
-# REQUIRES: GIT_USER_NAME|Enter your Git user name
-# REQUIRES: GIT_USER_EMAIL|Enter your Git user email
+# REQUIRES: GIT_USER_NAME|Enter your Git user name|git config --global user.name 2>/dev/null || echo ''
+# REQUIRES: GIT_USER_EMAIL|Enter your Git user email|git config --global user.email 2>/dev/null || echo ''
 
 install() {
     echo "Installing Git..."

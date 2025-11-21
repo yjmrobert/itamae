@@ -8,7 +8,7 @@
 
 install() {
     echo "Installing Helm..."
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    curl --silent https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
     echo "✅ Helm installed."
 }
 
