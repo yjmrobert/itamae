@@ -29,7 +29,6 @@ type pluginAssertion struct {
 // pluginAssertions is a map of plugin IDs to their expected command assertions.
 var pluginAssertions = map[string]pluginAssertion{
 	// Core plugins (OMAKASE: true)
-	"alacritty":           {install: "sudo nala install -y alacritty", remove: "sudo apt-get purge -y alacritty"},
 	"ansible":             {install: "pipx install", remove: "pipx uninstall ansible"},
 	"apt-transport-https": {install: "sudo nala install -y apt-transport-https", remove: "sudo apt-get purge -y apt-transport-https"},
 	"atuin":               {install: "bash", remove: "bash -s -- --uninstall"},
@@ -62,7 +61,6 @@ var pluginAssertions = map[string]pluginAssertion{
 	"semgrep":             {install: "pipx install semgrep", remove: "pipx uninstall semgrep"},
 	"starship":            {install: "curl -sS https://starship.rs/install.sh", remove: "sh -c rm \"$(command -v starship)\""},
 	"stow":                {install: "sudo nala install -y stow", remove: "sudo apt-get purge -y stow"},
-	"task":                {install: "sh -c", remove: "rm -f"},
 	"tldr":                {install: "curl -L https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-x86_64-musl", remove: "rm"},
 	"vscode":              {install: "sudo apt-get install -y /tmp/vscode-itamae.deb", remove: "sudo apt-get purge -y code"},
 	"wget":                {install: "sudo nala install -y wget", remove: "sudo apt-get purge -y wget"},
@@ -70,6 +68,8 @@ var pluginAssertions = map[string]pluginAssertion{
 	"yq":                  {install: "sudo curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq", remove: "sudo rm /usr/local/bin/yq"},
 	"helm":                {install: "curl --silent", remove: "sudo rm -f /usr/local/bin/helm"},
 	"kubectl":             {install: "curl -sLO", remove: "sudo rm -f /usr/local/bin/kubectl"},
+	"task":                {install: "curl --silent", remove: "rm -f"},
+	"alacritty":           {install: "sudo nala install -y alacritty", remove: "sudo apt-get purge -y alacritty"},
 
 	// À la carte plugins (OMAKASE: false)
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
@@ -363,10 +363,10 @@ func TestBatchInstallSeparation(t *testing.T) {
 	}
 
 	// Expected counts for Core plugins
-	// APT: git = 1
-	expectedAptCount := 1
-	// Binary: helm, kubectl = 2
-	expectedBinaryCount := 2
+	// APT: git, alacritty = 2
+	expectedAptCount := 2
+	// Binary: helm, kubectl, task = 3
+	expectedBinaryCount := 3
 
 	if len(aptPlugins) != expectedAptCount {
 		t.Errorf("Expected %d Core APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))

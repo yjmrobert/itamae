@@ -10,7 +10,7 @@ BINDIR="$HOME/.local/bin"
 
 install() {
     echo "Installing Task..."
-    sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b "$BINDIR"
+    sh -c "$(curl --silent --location https://taskfile.dev/install.sh)" -- -d -b "$BINDIR"
     echo "✅ Task installed."
 }
 
