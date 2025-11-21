@@ -16,12 +16,12 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 	return func() tea.Msg {
 		// Build the command
 		cmd := exec.Command("bash", "-c", fmt.Sprintf("source %s && %s", plugin.ScriptPath, command))
-		
+
 		// Set environment variables
 		for k, v := range env {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
 		}
-		
+
 		// Create pipes for stdout and stderr
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -31,7 +31,7 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 				Message: fmt.Sprintf("Failed to create stdout pipe: %v", err),
 			}
 		}
-		
+
 		stderr, err := cmd.StderrPipe()
 		if err != nil {
 			return ErrorMsg{
@@ -40,7 +40,7 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 				Message: fmt.Sprintf("Failed to create stderr pipe: %v", err),
 			}
 		}
-		
+
 		// Start the command
 		if err := cmd.Start(); err != nil {
 			return ErrorMsg{
@@ -49,7 +49,7 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 				Message: fmt.Sprintf("Failed to start command: %v", err),
 			}
 		}
-		
+
 		// Read stdout in a goroutine and collect logs
 		var stdoutBuf bytes.Buffer
 		stdoutDone := make(chan bool)
@@ -63,7 +63,7 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 			}
 			stdoutDone <- true
 		}()
-		
+
 		// Read stderr in a goroutine
 		var stderrBuf bytes.Buffer
 		stderrDone := make(chan bool)
@@ -75,14 +75,14 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 			}
 			stderrDone <- true
 		}()
-		
+
 		// Wait for output collection to complete
 		<-stdoutDone
 		<-stderrDone
-		
+
 		// Wait for command to complete
 		err = cmd.Wait()
-		
+
 		// Determine success/failure
 		if err != nil {
 			// Command failed
@@ -90,14 +90,14 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 			if errorMsg == "" {
 				errorMsg = fmt.Sprintf("Command exited with error: %v", err)
 			}
-			
+
 			return PackageCompleteMsg{
 				PackageID: plugin.ID,
 				Success:   false,
 				Error:     strings.TrimSpace(errorMsg),
 			}
 		}
-		
+
 		// Command succeeded
 		return PackageCompleteMsg{
 			PackageID: plugin.ID,
@@ -111,7 +111,7 @@ func ExecuteScriptAsyncCmd(plugin ToolPlugin, command string, env map[string]str
 func ExecuteBatchAPTCmd(packages []string, useNala bool) tea.Cmd {
 	return func() tea.Msg {
 		var cmd *exec.Cmd
-		
+
 		if useNala {
 			args := append([]string{"install", "-y"}, packages...)
 			cmd = exec.Command("sudo", append([]string{"nala"}, args...)...)
@@ -119,15 +119,15 @@ func ExecuteBatchAPTCmd(packages []string, useNala bool) tea.Cmd {
 			args := append([]string{"install", "-y"}, packages...)
 			cmd = exec.Command("sudo", append([]string{"apt-get"}, args...)...)
 		}
-		
+
 		// Create output buffer
 		var outputBuf bytes.Buffer
 		cmd.Stdout = &outputBuf
 		cmd.Stderr = &outputBuf
-		
+
 		// Run the command
 		err := cmd.Run()
-		
+
 		if err != nil {
 			return LogMsg{
 				Level:   "error",
@@ -135,7 +135,7 @@ func ExecuteBatchAPTCmd(packages []string, useNala bool) tea.Cmd {
 				Message: fmt.Sprintf("Batch APT install failed: %v\nOutput: %s", err, outputBuf.String()),
 			}
 		}
-		
+
 		return LogMsg{
 			Level:   "success",
 			Package: "",
@@ -148,13 +148,13 @@ func ExecuteBatchAPTCmd(packages []string, useNala bool) tea.Cmd {
 func ExecuteSystemCommandCmd(description string, cmdName string, args ...string) tea.Cmd {
 	return func() tea.Msg {
 		cmd := exec.Command(cmdName, args...)
-		
+
 		var outputBuf bytes.Buffer
 		cmd.Stdout = &outputBuf
 		cmd.Stderr = &outputBuf
-		
+
 		err := cmd.Run()
-		
+
 		if err != nil {
 			return ErrorMsg{
 				Package: "",
@@ -163,7 +163,7 @@ func ExecuteSystemCommandCmd(description string, cmdName string, args ...string)
 					cmdName, strings.Join(args, " "), err, outputBuf.String()),
 			}
 		}
-		
+
 		return LogMsg{
 			Level:   "success",
 			Package: "",
@@ -178,12 +178,12 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 	return func() tea.Msg {
 		// Build the command
 		cmd := exec.Command("bash", "-c", fmt.Sprintf("source %s && %s", plugin.ScriptPath, command))
-		
+
 		// Set environment variables
 		for k, v := range env {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
 		}
-		
+
 		// Create pipes
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -193,7 +193,7 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 				Message: fmt.Sprintf("Failed to create stdout pipe: %v", err),
 			}
 		}
-		
+
 		stderr, err := cmd.StderrPipe()
 		if err != nil {
 			return ErrorMsg{
@@ -202,7 +202,7 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 				Message: fmt.Sprintf("Failed to create stderr pipe: %v", err),
 			}
 		}
-		
+
 		// Start the command
 		if err := cmd.Start(); err != nil {
 			return ErrorMsg{
@@ -211,7 +211,7 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 				Message: fmt.Sprintf("Failed to start command: %v", err),
 			}
 		}
-		
+
 		// Stream stdout
 		go func() {
 			scanner := bufio.NewScanner(stdout)
@@ -226,7 +226,7 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 				}
 			}
 		}()
-		
+
 		// Stream stderr
 		go func() {
 			scanner := bufio.NewScanner(stderr)
@@ -241,10 +241,10 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 				}
 			}
 		}()
-		
+
 		// Wait for command to complete
 		err = cmd.Wait()
-		
+
 		// Send completion message
 		if err != nil {
 			return PackageCompleteMsg{
@@ -253,7 +253,7 @@ func StreamedExecuteScriptCmd(plugin ToolPlugin, command string, env map[string]
 				Error:     fmt.Sprintf("Command failed: %v", err),
 			}
 		}
-		
+
 		return PackageCompleteMsg{
 			PackageID: plugin.ID,
 			Success:   true,

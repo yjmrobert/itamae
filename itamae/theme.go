@@ -8,25 +8,25 @@ import (
 // Reference: https://github.com/tokyo-night/tokyo-night-vscode-theme
 var (
 	// Background colors
-	TokyoNightBg       = lipgloss.Color("#1a1b26") // Main background
-	TokyoNightBgDark   = lipgloss.Color("#16161e") // Darker background
-	TokyoNightBgFloat  = lipgloss.Color("#1f2335") // Floating elements
+	TokyoNightBg          = lipgloss.Color("#1a1b26") // Main background
+	TokyoNightBgDark      = lipgloss.Color("#16161e") // Darker background
+	TokyoNightBgFloat     = lipgloss.Color("#1f2335") // Floating elements
 	TokyoNightBgHighlight = lipgloss.Color("#292e42") // Selection/highlight
-	
+
 	// Foreground colors
-	TokyoNightFg       = lipgloss.Color("#c0caf5") // Main foreground
-	TokyoNightFgDark   = lipgloss.Color("#a9b1d6") // Darker foreground
-	TokyoNightComment  = lipgloss.Color("#565f89") // Comments
-	
+	TokyoNightFg      = lipgloss.Color("#c0caf5") // Main foreground
+	TokyoNightFgDark  = lipgloss.Color("#a9b1d6") // Darker foreground
+	TokyoNightComment = lipgloss.Color("#565f89") // Comments
+
 	// Accent colors
-	TokyoNightBlue     = lipgloss.Color("#7aa2f7") // Info/running
-	TokyoNightCyan     = lipgloss.Color("#7dcfff") // Hints
-	TokyoNightGreen    = lipgloss.Color("#9ece6a") // Success
-	TokyoNightYellow   = lipgloss.Color("#e0af68") // Warning/skipped
-	TokyoNightOrange   = lipgloss.Color("#ff9e64") // Warning alt
-	TokyoNightRed      = lipgloss.Color("#f7768e") // Error
-	TokyoNightMagenta  = lipgloss.Color("#bb9af7") // Special
-	TokyoNightPurple   = lipgloss.Color("#9d7cd8") // Special alt
+	TokyoNightBlue    = lipgloss.Color("#7aa2f7") // Info/running
+	TokyoNightCyan    = lipgloss.Color("#7dcfff") // Hints
+	TokyoNightGreen   = lipgloss.Color("#9ece6a") // Success
+	TokyoNightYellow  = lipgloss.Color("#e0af68") // Warning/skipped
+	TokyoNightOrange  = lipgloss.Color("#ff9e64") // Warning alt
+	TokyoNightRed     = lipgloss.Color("#f7768e") // Error
+	TokyoNightMagenta = lipgloss.Color("#bb9af7") // Special
+	TokyoNightPurple  = lipgloss.Color("#9d7cd8") // Special alt
 )
 
 // Status colors
@@ -44,14 +44,14 @@ var (
 	BaseStyle = lipgloss.NewStyle().
 			Foreground(TokyoNightFg).
 			Background(TokyoNightBg)
-	
+
 	// Title style for pane headers
 	TitleStyle = lipgloss.NewStyle().
 			Foreground(TokyoNightMagenta).
 			Background(TokyoNightBg).
 			Bold(true).
 			Padding(0, 1)
-	
+
 	// Border style
 	BorderStyle = lipgloss.NewStyle().
 			BorderStyle(lipgloss.RoundedBorder()).
@@ -63,7 +63,7 @@ var (
 func ChecklistStyle(status string) lipgloss.Style {
 	var color lipgloss.Color
 	var icon string
-	
+
 	switch status {
 	case "pending":
 		color = StatusPending
@@ -84,7 +84,7 @@ func ChecklistStyle(status string) lipgloss.Style {
 		color = TokyoNightComment
 		icon = "?"
 	}
-	
+
 	return lipgloss.NewStyle().
 		Foreground(color).
 		Background(TokyoNightBg).
@@ -112,7 +112,7 @@ func LogPaneStyle() lipgloss.Style {
 // LogLineStyle returns styled text for log lines based on level
 func LogLineStyle(level string) lipgloss.Style {
 	var color lipgloss.Color
-	
+
 	switch level {
 	case "info":
 		color = TokyoNightFg
@@ -127,7 +127,7 @@ func LogLineStyle(level string) lipgloss.Style {
 	default:
 		color = TokyoNightFgDark
 	}
-	
+
 	return lipgloss.NewStyle().
 		Foreground(color).
 		Background(TokyoNightBg)
