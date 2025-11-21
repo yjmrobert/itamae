@@ -3,19 +3,22 @@
 # METADATA
 # NAME: GitHub CLI
 # DESCRIPTION: The official GitHub command-line tool.
-# INSTALL_METHOD: binary
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: gh
+# REPO_SETUP: setup_repo
 #
 
-install() {
-    echo "Installing GitHub CLI..."
-    
-    # Add GitHub CLI repository
+setup_repo() {
+    echo "Setting up GitHub CLI repository..."
     sudo mkdir -p /etc/apt/keyrings
     wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg 2>/dev/null | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
     sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-    
-    sudo apt-get update
+    echo "✅ GitHub CLI repository configured."
+}
+
+install() {
+    echo "Installing GitHub CLI..."
     if command -v nala &> /dev/null; then
         sudo nala install -y gh
     else
@@ -38,8 +41,9 @@ check() {
 
 # --- ROUTER ---
 case "$1" in
+    setup_repo) setup_repo ;;
     install) install ;;
     remove) remove ;;
     check) check ;;
-    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
+    *) echo "Usage: $0 {setup_repo|install|remove|check}" && exit 1 ;;
 esac

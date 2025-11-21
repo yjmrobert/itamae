@@ -42,11 +42,11 @@ var pluginAssertions = map[string]pluginAssertion{
 	"kubectl":             {install: "curl -sLO", remove: "sudo rm -f /usr/local/bin/kubectl"},
 	"task":                {install: "curl --silent", remove: "rm -f"},
 	"alacritty":           {install: "sudo nala install -y alacritty", remove: "sudo apt-get purge -y alacritty"},
-	"dotnet-sdk-8.0":      {install: "wget -q", remove: "sudo apt-get purge -y dotnet-sdk-8.0"},
+	"dotnet-sdk-8.0":      {install: "sudo nala install -y dotnet-sdk-8.0", remove: "sudo apt-get purge -y dotnet-sdk-8.0"},
 	"jq":                  {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
 	"kubecolor":           {install: "curl -s", remove: "rm -f"},
 	"lsd":                 {install: "sudo nala install -y lsd", remove: "sudo apt-get purge -y lsd"},
-	"nodejs":              {install: "curl --silent", remove: "sudo apt-get purge -y nodejs"},
+	"nodejs":              {install: "sudo nala install -y nodejs", remove: "sudo apt-get purge -y nodejs"},
 	"npm":                 {install: "sudo nala install -y npm", remove: "sudo apt-get purge -y npm"},
 	"python3-full":        {install: "sudo nala install -y python3-full", remove: "sudo apt-get purge -y python3-full"},
 	"pipx":                {install: "sudo nala install -y pipx", remove: "sudo apt-get purge -y pipx"},
@@ -60,7 +60,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"nala":                {install: "sudo apt-get install -y nala", remove: "sudo apt-get purge -y nala"},
 	"fd":                  {install: "sudo nala install -y fd-find", remove: "sudo apt-get purge -y fd-find"},
 	"fzf":                 {install: "sudo nala install -y fzf", remove: "sudo apt-get purge -y fzf"},
-	"gh":                  {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y gh"},
+	"gh":                  {install: "sudo nala install -y gh", remove: "sudo apt-get purge -y gh"},
 
 	// Essentials plugins (common developer extras)
 	"stow":     {install: "sudo nala install -y stow", remove: "sudo apt-get purge -y stow"},
@@ -71,7 +71,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"atuin":    {install: "bash", remove: "bash -s -- --uninstall"},
 	"rust":     {install: "curl --proto", remove: "rustup self uninstall -y"},
 	"sdkman":   {install: "curl -s", remove: "rm -rf"},
-	"java":     {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y temurin-21-jdk"},
+	"java":     {install: "sudo nala install -y temurin-21-jdk", remove: "sudo apt-get purge -y temurin-21-jdk"},
 	"maven":    {install: "wget", remove: "sudo rm -rf /opt/maven"},
 
 	// À la carte plugins (OMAKASE: false)
@@ -218,10 +218,10 @@ func TestMetadataParsing(t *testing.T) {
 		"btop":                "apt",
 		"ca-certificates":     "apt",
 		"curl":                "apt",
-		"dotnet-sdk-8.0":      "binary",
+		"dotnet-sdk-8.0":      "apt",
 		"fd":                  "apt",
 		"fzf":                 "apt",
-		"gh":                  "binary",
+		"gh":                  "apt",
 		"git":                 "apt",
 		"gnupg":               "apt",
 		"helm":                "binary",
@@ -231,7 +231,7 @@ func TestMetadataParsing(t *testing.T) {
 		"kubecolor":           "binary",
 		"lsd":                 "apt",
 		"nala":                "apt",
-		"nodejs":              "binary",
+		"nodejs":              "apt",
 		"npm":                 "apt",
 		"pass":                "apt",
 		"pipx":                "apt",
@@ -254,7 +254,7 @@ func TestMetadataParsing(t *testing.T) {
 		"atuin":    "binary",
 		"rust":     "binary",
 		"sdkman":   "binary",
-		"java":     "binary",
+		"java":     "apt",
 		"maven":    "binary",
 
 		// À la carte plugins (OMAKASE: false)
@@ -279,14 +279,17 @@ func TestMetadataParsing(t *testing.T) {
 		"btop":                "btop",
 		"ca-certificates":     "ca-certificates",
 		"curl":                "curl",
+		"dotnet-sdk-8.0":      "dotnet-sdk-8.0",
 		"fd":                  "fd-find",
 		"fzf":                 "fzf",
+		"gh":                  "gh",
 		"git":                 "git",
 		"gnupg":               "gnupg",
 		"httpie":              "httpie",
 		"jq":                  "jq",
 		"lsd":                 "lsd",
 		"nala":                "nala",
+		"nodejs":              "nodejs",
 		"npm":                 "npm",
 		"pass":                "pass",
 		"pipx":                "pipx",
@@ -299,6 +302,7 @@ func TestMetadataParsing(t *testing.T) {
 		"stow":    "stow",
 		"ripgrep": "ripgrep",
 		"bat":     "bat",
+		"java":    "temurin-21-jdk",
 
 		// À la carte plugins
 		"btop-desktop": "btop",
@@ -368,10 +372,10 @@ func TestBatchInstallSeparation(t *testing.T) {
 	}
 
 	// Expected counts for Core plugins
-	// APT: git, alacritty, jq, lsd, npm, python3-full, pipx, wget, wireguard, curl, apt-transport-https, ca-certificates, gnupg, nala, fd, fzf = 16
-	expectedAptCount := 16
-	// Binary: helm, kubectl, task, dotnet-sdk-8.0, kubecolor, nodejs, yq, gh = 8
-	expectedBinaryCount := 8
+	// APT: git, alacritty, jq, lsd, npm, python3-full, pipx, wget, wireguard, curl, apt-transport-https, ca-certificates, gnupg, nala, fd, fzf, gh, nodejs, dotnet-sdk-8.0 = 19
+	expectedAptCount := 19
+	// Binary: helm, kubectl, task, kubecolor, yq = 5
+	expectedBinaryCount := 5
 
 	if len(aptPlugins) != expectedAptCount {
 		t.Errorf("Expected %d Core APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))

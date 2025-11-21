@@ -3,13 +3,19 @@
 # METADATA
 # NAME: Node.js
 # DESCRIPTION: A JavaScript runtime environment.
-# INSTALL_METHOD: binary
+# INSTALL_METHOD: apt
+# PACKAGE_NAME: nodejs
+# REPO_SETUP: setup_repo
 #
+
+setup_repo() {
+    echo "Setting up NodeSource repository..."
+    curl --silent -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - > /dev/null 2>&1
+    echo "✅ NodeSource repository configured."
+}
 
 install() {
     echo "Installing Node.js..."
-    # Add NodeSource repository
-    curl --silent -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     if command -v nala &> /dev/null; then
         sudo nala install -y nodejs
     else
@@ -32,8 +38,9 @@ check() {
 
 # --- ROUTER ---
 case "$1" in
+    setup_repo) setup_repo ;;
     install) install ;;
     remove) remove ;;
     check) check ;;
-    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
+    *) echo "Usage: $0 {setup_repo|install|remove|check}" && exit 1 ;;
 esac

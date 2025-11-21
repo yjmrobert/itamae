@@ -32,6 +32,7 @@ type ToolPlugin struct {
 	ScriptPath     string // The path to the executable in the /tmp/ directory
 	InstallMethod  string // "apt", "binary", "manual"
 	PackageName    string // For apt packages, the actual package name
+	RepoSetup      string // Function name for repository setup (optional, for APT packages needing custom repos)
 	PostInstall    string // Function name for post-install tasks (optional)
 	RequiredInputs []Input
 }
@@ -310,6 +311,8 @@ func parseMetadata(content string) (ToolPlugin, error) {
 			plugin.InstallMethod = value
 		case "PACKAGE_NAME":
 			plugin.PackageName = value
+		case "REPO_SETUP":
+			plugin.RepoSetup = value
 		case "POST_INSTALL":
 			plugin.PostInstall = value
 		case "REQUIRES":
@@ -397,6 +400,43 @@ func processInstall(selectedPlugins []ToolPlugin, requiredInputs map[string]stri
 	// Track success/failure
 	successful := []string{}
 	failed := []string{}
+
+	// Phase 0: Repository Setup
+	repoPlugins := []ToolPlugin{}
+	for _, p := range aptPlugins {
+		if p.RepoSetup != "" {
+			repoPlugins = append(repoPlugins, p)
+		}
+	}
+
+	if len(repoPlugins) > 0 {
+		fmt.Printf("\n🔧 Setting up %d custom repositor(ies)...\n", len(repoPlugins))
+		for _, p := range repoPlugins {
+			fmt.Printf("   • %s\n", p.Name)
+			if err := executeScript(p, "setup_repo", requiredInputs); err != nil {
+				Logger.Errorf("❌ Error setting up repository for %s: %v\n", p.Name, err)
+				fmt.Println("\n❌ Repository setup failed. Cannot proceed with installation.")
+				return
+			}
+		}
+
+		// Run single apt-get update after all repos are added
+		fmt.Println("\n📦 Updating package lists...")
+		var updateCmd *exec.Cmd
+		if _, err := exec.LookPath("nala"); err == nil {
+			updateCmd = exec.Command("sudo", "nala", "update")
+		} else {
+			updateCmd = exec.Command("sudo", "apt-get", "update")
+		}
+		updateCmd.Stdout = os.Stdout
+		updateCmd.Stderr = os.Stderr
+		if err := updateCmd.Run(); err != nil {
+			Logger.Errorf("❌ Error updating package lists: %v\n", err)
+			fmt.Println("\n❌ Package list update failed. Cannot proceed with installation.")
+			return
+		}
+		fmt.Println("✅ Package lists updated.")
+	}
 
 	// Phase 1: Batch install all APT packages
 	if len(aptPlugins) > 0 {
