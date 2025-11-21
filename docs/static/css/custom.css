@@ -13,15 +13,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  color: rgba(187, 154, 247, 1);
+  color: var(--tn-purple);
 }
 
 h2 {
-  color: rgba(122, 162, 247, 1);
+  color: var(--tn-blue);
 }
 
 h3 {
-  color: rgba(115, 218, 202, 1);
+  color: var(--tn-teal);
 }
 
 /* Basic code styling */
@@ -41,7 +41,7 @@ pre {
 /* Subtle active menu item indicator */
 body #R-sidebar li.active > label,
 body #R-sidebar li.active > :is(a, span) {
-  border-left: 2px solid rgba(187, 154, 247, 0.8);
+  border-left: 2px solid var(--tn-purple);
   padding-left: 8px;
 }
 

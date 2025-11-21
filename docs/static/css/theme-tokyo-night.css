@@ -1,38 +1,48 @@
 /* Subtle Tokyo Night Theme */
 
 :root {
-  /* Tokyo Night color palette - subtle application */
-  --PRIMARY-color: rgba(122, 162, 247, 1); /* soft blue */
-  --SECONDARY-color: rgba(115, 218, 202, 1); /* teal */
-  --ACCENT-color: rgba(187, 154, 247, 1); /* purple */
+  /* Tokyo Night unified color palette */
+  --tn-bg-primary: rgba(26, 27, 38, 1);
+  --tn-bg-secondary: rgba(30, 32, 48, 1);
+  --tn-bg-tertiary: rgba(22, 23, 34, 1);
+  --tn-text: rgba(192, 202, 245, 1);
+  --tn-blue: rgba(122, 162, 247, 1);
+  --tn-purple: rgba(187, 154, 247, 1);
+  --tn-teal: rgba(115, 218, 202, 1);
+  --tn-border: rgba(70, 75, 100, 0.5);
+  
+  /* Apply to theme variables */
+  --PRIMARY-color: var(--tn-blue);
+  --SECONDARY-color: var(--tn-teal);
+  --ACCENT-color: var(--tn-purple);
   
   /* Main content */
-  --MAIN-TEXT-color: rgba(192, 202, 245, 1);
-  --MAIN-BG-color: rgba(26, 27, 38, 1);
-  --MAIN-TITLES-TEXT-color: rgba(187, 154, 247, 1);
+  --MAIN-TEXT-color: var(--tn-text);
+  --MAIN-BG-color: var(--tn-bg-primary);
+  --MAIN-TITLES-TEXT-color: var(--tn-purple);
   
   /* Links */
-  --MAIN-LINK-color: rgba(122, 162, 247, 1);
-  --MAIN-LINK-HOVER-color: rgba(187, 154, 247, 1);
+  --MAIN-LINK-color: var(--tn-blue);
+  --MAIN-LINK-HOVER-color: var(--tn-purple);
   
   /* Code blocks */
-  --CODE-BLOCK-BG-color: rgba(30, 32, 48, 1);
-  --CODE-BLOCK-BORDER-color: rgba(70, 75, 100, 0.5);
-  --CODE-INLINE-color: rgba(187, 154, 247, 1);
-  --CODE-INLINE-BG-color: rgba(30, 32, 48, 0.8);
-  --CODE-INLINE-BORDER-color: rgba(70, 75, 100, 0.5);
+  --CODE-BLOCK-BG-color: var(--tn-bg-secondary);
+  --CODE-BLOCK-BORDER-color: var(--tn-border);
+  --CODE-INLINE-color: var(--tn-purple);
+  --CODE-INLINE-BG-color: var(--tn-bg-secondary);
+  --CODE-INLINE-BORDER-color: var(--tn-border);
   
   /* Menu */
-  --MENU-HEADER-BG-color: rgba(22, 23, 34, 1);
-  --MENU-SECTIONS-BG-color: rgba(26, 27, 38, 1);
+  --MENU-HEADER-BG-color: var(--tn-bg-tertiary);
+  --MENU-SECTIONS-BG-color: var(--tn-bg-primary);
   --MENU-SECTIONS-ACTIVE-BG-color: rgba(122, 162, 247, 0.15);
-  --MENU-SECTIONS-LINK-color: rgba(192, 202, 245, 0.9);
-  --MENU-SECTIONS-LINK-HOVER-color: rgba(122, 162, 247, 1);
-  --MENU-SECTION-ACTIVE-CATEGORY-color: rgba(187, 154, 247, 1);
+  --MENU-SECTIONS-LINK-color: var(--tn-text);
+  --MENU-SECTIONS-LINK-HOVER-color: var(--tn-blue);
+  --MENU-SECTION-ACTIVE-CATEGORY-color: var(--tn-purple);
   
   /* Boxes */
-  --BOX-BG-color: rgba(30, 32, 48, 1);
-  --BOX-TEXT-color: rgba(192, 202, 245, 1);
+  --BOX-BG-color: var(--tn-bg-secondary);
+  --BOX-TEXT-color: var(--tn-text);
 }
 
 /* Subtle enhancements */
@@ -46,5 +56,5 @@ body code {
 
 body pre {
   border-radius: 4px;
-  border: 1px solid rgba(70, 75, 100, 0.5);
+  border: 1px solid var(--tn-border);
 }
