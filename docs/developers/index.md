@@ -1,8 +1,3 @@
----
-title: Developer Guide
-weight: 100
----
-
 # Developer Guide
 
 Welcome to the Itamae developer documentation. Here you'll learn how to contribute to Itamae and extend it with new plugins.
@@ -34,14 +29,14 @@ itamae/
 
 ## Quick Links
 
-- [Adding Plugins]({{% relref "adding-plugins" %}}) - Create new tool plugins
-- [Testing]({{% relref "testing" %}}) - Running and writing tests
-- [TUI Development]({{% relref "tui" %}}) - Working with the terminal UI
-- [Release Process]({{% relref "releases" %}}) - Creating new releases
+- [Adding Plugins](/developers/adding-plugins) - Create new tool plugins
+- [Testing](/developers/testing) - Running and writing tests
+- [TUI Development](/developers/tui) - Working with the terminal UI
+- [Release Process](/developers/releases) - Creating new releases
 
 ## Contributing
 
-See the [Contributing Guide]({{% relref "../contributing" %}}) for guidelines on:
+See the [Contributing Guide](/contributing) for guidelines on:
 - Code style
 - Commit conventions
 - Pull request process

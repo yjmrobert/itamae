@@ -1,8 +1,3 @@
----
-title: Contributing
-weight: 40
----
-
 # Contributing to Itamae
 
 Thank you for your interest in contributing to Itamae! This guide will help you get started.
@@ -204,20 +199,15 @@ When making changes, update the documentation:
 ### Where to Update
 
 - **Code changes**: Update inline comments
-- **New features**: Update `docs/content/docs/usage.md`
-- **Plugin changes**: Update `docs/content/docs/developers/adding-plugins.md`
-- **Installation changes**: Update `docs/content/docs/installation.md`
+- **New features**: Update `docs/usage.md`
+- **Plugin changes**: Update `docs/developers/adding-plugins.md`
+- **Installation changes**: Update `docs/installation.md`
 
 ### Documentation Format
 
-Documentation uses Hugo with Markdown:
+Documentation uses Markdown:
 
 ```markdown
----
-title: Page Title
-weight: 1
----
-
 # Page Title
 
 Content goes here...
@@ -280,7 +270,7 @@ Describe how you tested the changes
 
 ## Adding New Plugins
 
-See the [Adding Plugins Guide]({{% relref "developers/adding-plugins" %}}) for detailed instructions.
+See the [Adding Plugins Guide](/developers/adding-plugins) for detailed instructions.
 
 **Quick checklist:**
 - [ ] Script in appropriate directory (`core/`, `essentials/`, or `unverified/`)

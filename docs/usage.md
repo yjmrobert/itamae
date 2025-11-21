@@ -1,8 +1,3 @@
----
-title: Usage Guide
-weight: 20
----
-
 # Usage Guide
 
 Learn how to use Itamae to set up your development environment.
@@ -26,26 +21,35 @@ This launches a TUI (Terminal User Interface) where you can:
 
 #### Installation Categories
 
-{{% expand title="Core" %}}
+<details>
+<summary><strong>Core</strong></summary>
+
 Essential development tools installed automatically:
 - git, kubectl, helm
 - nodejs, npm
 - python3, pipx
 - And more...
-{{% /expand %}}
 
-{{% expand title="Essentials" %}}
+</details>
+
+<details>
+<summary><strong>Essentials</strong></summary>
+
 Common developer extras:
 - stow, ripgrep, bat
 - zoxide, starship, atuin
 - rust, java, maven, sdkman
-{{% /expand %}}
 
-{{% expand title="Unverified" %}}
+</details>
+
+<details>
+<summary><strong>Unverified</strong></summary>
+
 Additional tools with interactive multi-select:
 - Choose specific packages
 - Customizable selection
-{{% /expand %}}
+
+</details>
 
 ### logs
 
@@ -138,4 +142,4 @@ If you encounter issues:
    itamae logs --follow
    ```
 
-For more help, see the [Troubleshooting Guide]({{% relref "troubleshooting" %}}).
+For more help, see the [Troubleshooting Guide](/troubleshooting).

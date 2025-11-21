@@ -1,8 +1,3 @@
----
-title: Release Process
-weight: 40
----
-
 # Release Process
 
 Learn how to create releases for Itamae using the automated release system.

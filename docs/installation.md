@@ -1,17 +1,12 @@
----
-title: Installation
-weight: 10
----
-
 # Installation
 
 There are several ways to install Itamae on your Linux system.
 
 ## Quick Install (Recommended)
 
-{{% notice style="info" title="Quick Install" %}}
+:::info Quick Install
 **One-line installation** - Copy and paste this command to install Itamae:
-{{% /notice %}}
+:::
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
@@ -22,9 +17,9 @@ This will:
 - ✅ Install it to `/usr/local/bin`
 - ✅ Make it available system-wide
 
-{{% notice style="warning" title="Security Note" %}}
+:::warning Security Note
 Always review scripts before piping to bash. You can inspect the install script at: [install.sh](https://github.com/yjmrobert/itamae/blob/master/install.sh)
-{{% /notice %}}
+:::
 
 ## Install Specific Version
 
@@ -97,4 +92,4 @@ itamae version
 
 Now that you have Itamae installed, learn how to use it:
 
-[Usage Guide →]({{% relref "usage" %}})
+[Usage Guide →](/usage)

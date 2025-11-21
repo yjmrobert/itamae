@@ -1,8 +1,3 @@
----
-title: Adding Plugins
-weight: 10
----
-
 # Adding Plugins
 
 Learn how to add new tool plugins to Itamae.
@@ -19,9 +14,9 @@ Each plugin is a shell script with:
 
 ## Directory Selection
 
-{{% notice style="warning" title="Choose Carefully" %}}
+:::warning Choose Carefully
 The directory determines how your plugin will be presented to users.
-{{% /notice %}}
+:::
 
 Choose the appropriate directory:
 
@@ -296,9 +291,9 @@ Itamae optimizes APT installations through batching:
 
 ## Testing Your Plugin
 
-See the [Testing Guide]({{% relref "testing" %}}) for details on testing plugins.
+See the [Testing Guide](/developers/testing) for details on testing plugins.
 
 ## Next Steps
 
-- [Testing]({{% relref "testing" %}}) - Test your plugin
-- [Contributing]({{% relref "../contributing" %}}) - Submit your plugin
+- [Testing](/developers/testing) - Test your plugin
+- [Contributing](/contributing) - Submit your plugin

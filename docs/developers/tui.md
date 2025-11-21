@@ -1,8 +1,3 @@
----
-title: TUI Development
-weight: 30
----
-
 # TUI Development
 
 Learn about Itamae's Terminal User Interface architecture and how to extend it.
@@ -470,5 +465,5 @@ View debug output:
 
 ## Next Steps
 
-- [Testing]({{% relref "testing" %}}) - Test your TUI changes
-- [Release Process]({{% relref "releases" %}}) - Prepare for release
+- [Testing](/developers/testing) - Test your TUI changes
+- [Release Process](/developers/releases) - Prepare for release

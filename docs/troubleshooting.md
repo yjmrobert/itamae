@@ -1,8 +1,3 @@
----
-title: Troubleshooting
-weight: 30
----
-
 # Troubleshooting
 
 Common issues and their solutions.
@@ -46,9 +41,9 @@ For network-related issues:
 
 ## Debug Logging
 
-{{% notice style="info" title="Automatic Logging" %}}
+:::info Automatic Logging
 Itamae automatically saves detailed logs to `/tmp/itamae-logs/` for every installation run.
-{{% /notice %}}
+:::
 
 ### Viewing Logs
 

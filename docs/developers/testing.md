@@ -1,8 +1,3 @@
----
-title: Testing
-weight: 20
----
-
 # Testing
 
 Learn how to test your Itamae plugins and contributions.
@@ -232,5 +227,5 @@ Before committing:
 
 ## Next Steps
 
-- [TUI Development]({{% relref "tui" %}}) - Working with the terminal UI
-- [Release Process]({{% relref "releases" %}}) - Creating releases
+- [TUI Development](/developers/tui) - Working with the terminal UI
+- [Release Process](/developers/releases) - Creating releases

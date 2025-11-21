@@ -1,191 +1,154 @@
 # Itamae Documentation
 
-This directory contains the Hugo-based documentation for Itamae using the [Relearn theme](https://mcshelby.github.io/hugo-theme-relearn/).
+This directory contains the VitePress-based documentation for Itamae.
 
 ## Local Development
 
 ### Prerequisites
 
-Hugo Extended version 0.141.0 or later is required. Check your version:
+- Node.js 20 or higher
+- npm (comes with Node.js)
+
+### Quick Start
 
 ```bash
-hugo version
+# Install dependencies
+npm install
+
+# Start dev server with hot reload
+npm run docs:dev
+
+# Visit http://localhost:5173
 ```
 
-### Installing Hugo
-
-#### Ubuntu/Debian
-
-Download and install Hugo Extended:
+### Build for Production
 
 ```bash
-# Download Hugo Extended 0.141.0
-wget https://github.com/gohugoio/hugo/releases/download/v0.141.0/hugo_extended_0.141.0_linux-amd64.deb
+# Build static site
+npm run docs:build
 
-# Install
-sudo dpkg -i hugo_extended_0.141.0_linux-amd64.deb
-
-# Verify
-hugo version
+# Preview production build
+npm run docs:preview
 ```
 
-#### Using Snap
-
-```bash
-sudo snap install hugo
-```
-
-#### Using Go
-
-```bash
-go install github.com/gohugoio/hugo@latest
-```
-
-### Build and Serve
-
-#### Development Server
-
-Run the Hugo development server with live reload:
-
-```bash
-cd docs
-hugo server
-```
-
-Then open http://localhost:1313/ in your browser.
-
-#### Production Build
-
-Build the static site:
-
-```bash
-cd docs
-hugo
-```
-
-Output will be in `docs/public/`.
-
-## Theme
-
-This documentation uses the [Hugo Relearn theme](https://github.com/McShelby/hugo-theme-relearn) with a custom **Tokyo Night Cyber Retro** color scheme. The theme is included as a git submodule.
-
-### Custom Styling
-
-The Tokyo Night cyber retro theme includes:
-- **Color Palette**: Deep blue-purple backgrounds with neon cyan, purple, and green accents inspired by Tokyo Night
-- **Typography**: Orbitron and Rajdhani fonts for a retro-futuristic feel, Space Mono for code
-- **Visual Effects**: Subtle neon glows, scanline overlays, animated gradients, and cyber-style borders
-- **Custom CSS**: Located in `static/css/theme-tokyo-night.css` and `static/css/custom.css`
-- **Custom Layout**: `layouts/partials/custom-header.html` loads the fonts and theme CSS
-
-### Update Theme
-
-To update the base theme to the latest version:
-
-```bash
-cd docs/themes/hugo-theme-relearn
-git pull origin main
-```
-
-## Documentation Structure
+## Structure
 
 ```
 docs/
-├── content/
-│   ├── _index.md              # Home page
-│   └── docs/
-│       ├── installation.md     # Installation guide
-│       ├── usage.md           # Usage guide
-│       ├── troubleshooting.md # Troubleshooting
-│       ├── contributing.md    # Contributing guide
-│       └── developers/        # Developer documentation
-│           ├── adding-plugins.md
-│           ├── testing.md
-│           ├── tui.md
-│           └── releases.md
-├── hugo.toml                  # Hugo configuration
-└── themes/
-    └── hugo-theme-relearn/    # Theme (submodule)
+├── .vitepress/
+│   ├── config.mts          # VitePress configuration
+│   └── theme/
+│       ├── index.ts        # Theme entry
+│       └── style.css       # Tokyo Night custom theme
+├── index.md                # Home page (hero layout)
+├── installation.md         # Installation guide
+├── usage.md                # Usage guide
+├── troubleshooting.md      # Troubleshooting
+├── contributing.md         # Contributing guide
+└── developers/             # Developer documentation
+    ├── index.md            # Overview
+    ├── adding-plugins.md   # Plugin development
+    ├── testing.md          # Testing guide
+    ├── tui.md              # TUI development
+    └── releases.md         # Release process
 ```
+
+## Theme
+
+The documentation uses a custom **Tokyo Night** dark theme built on VitePress's default theme. The color palette is defined in `.vitepress/theme/style.css`.
 
 ## Writing Documentation
 
-### Frontmatter
+### Containers (Callouts)
 
-Each page should have frontmatter:
-
-```markdown
----
-title: Page Title
-weight: 10
----
-```
-
-### Shortcodes
-
-The Relearn theme provides several useful shortcodes:
-
-#### Notice Boxes
+Use VitePress custom containers for notices:
 
 ```markdown
-{{% notice style="info" title="Title" %}}
-Content here
-{{% /notice %}}
+:::info
+Information message
+:::
+
+:::tip
+Helpful tip
+:::
+
+:::warning
+Warning message
+:::
+
+:::danger
+Critical warning
+:::
 ```
 
-Styles: `info`, `warning`, `note`, `tip`
+### Details/Collapsible Sections
 
-#### Expand/Collapse
+Use HTML `<details>` tags:
 
 ```markdown
-{{% expand title="Click to expand" %}}
-Hidden content
-{{% /expand %}}
+<details>
+<summary>Click to expand</summary>
+
+Content here...
+
+</details>
 ```
 
-#### Buttons
+### Links
+
+Use relative markdown links:
 
 ```markdown
-{{% button href="https://example.com" %}}Click Me{{% /button %}}
+[Link to page](/path/to/page)
+[Link to section](#section-anchor)
 ```
-
-### Navigation
-
-Pages are automatically organized by:
-- Directory structure
-- `weight` in frontmatter (lower numbers appear first)
 
 ## Deployment
 
 Documentation is automatically deployed to GitHub Pages when changes are pushed to the `master` branch.
 
-The deployment workflow is defined in `.github/workflows/deploy-docs.yml`.
+The deployment workflow is defined in `.github/workflows/deploy-vitepress.yml`.
+
+## Migration Notes
+
+This documentation was migrated from Hugo (hugo-theme-relearn) to VitePress on November 21, 2024.
+
+### Why VitePress?
+
+- **Simpler installation**: npm-based, no Hugo Extended required
+- **Better DX**: Fast hot reload, Vue-based
+- **Portable syntax**: Standard Markdown, minimal framework-specific syntax
+- **No submodules**: Theme is npm package, not git submodule
+- **Modern**: Active development, growing ecosystem
 
 ## Troubleshooting
 
-### Hugo Version Mismatch
-
-If you see errors about Hugo version:
-
-```
-WARN Module "hugo-theme-relearn" is not compatible with this Hugo version
-```
-
-Upgrade Hugo to version 0.141.0 or later.
-
-### Theme Not Found
-
-If the theme directory is empty:
+### Module not found errors
 
 ```bash
-git submodule update --init --recursive
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-### Build Errors
+### Port already in use
 
-Clear Hugo cache and rebuild:
+VitePress runs on port 5173 by default. Change it:
 
 ```bash
-hugo mod clean
-hugo
+npm run docs:dev -- --port 3000
 ```
+
+### Build fails
+
+Check Node.js version:
+
+```bash
+node --version  # Should be 20+
+```
+
+## Resources
+
+- [VitePress Documentation](https://vitepress.dev/)
+- [VitePress GitHub](https://github.com/vuejs/vitepress)
+- [Markdown Extensions](https://vitepress.dev/guide/markdown)
+- [Default Theme Config](https://vitepress.dev/reference/default-theme-config)
