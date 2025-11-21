@@ -1,0 +1,65 @@
+baseURL = '/'
+languageCode = 'en-us'
+title = 'Itamae Documentation'
+theme = 'hugo-theme-relearn'
+
+[outputs]
+home = ['HTML', 'RSS', 'SEARCH']
+
+[params]
+  # Relearn theme options
+  disableNextPrev = false
+  disableLandingPage = false
+  disableSearch = false
+  disableLanguageSwitchingButton = true
+  disableShortcutsTitle = false
+  
+  # Edit on GitHub
+  editURL = 'https://github.com/yjmrobert/itamae/edit/master/docs/content/'
+  
+  # Theme variant (auto, light, dark, zen-light, zen-dark, neon, learn, blue, green, red)
+  themeVariant = 'auto'
+  
+  # Custom color scheme - Tokyo Night inspired
+  [params.themeVariantModifier]
+    auto = ["dark-theme"]
+  
+  # Description for SEO
+  description = 'Itamae - A command-line tool for setting up Linux development workstations'
+  
+  # Author
+  author = 'yjmrobert'
+  
+  # Show breadcrumbs
+  showVisitedLinks = true
+  
+  # Code highlighting
+  [params.highlight]
+    style = 'tokyo-night-dark'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    anchorLineNos = false
+    codeFences = true
+    guessSyntax = false
+    hl_Lines = ''
+    lineAnchors = ''
+    lineNoStart = 1
+    lineNos = false
+    lineNumbersInTable = true
+    noClasses = true
+    style = 'monokai'
+    tabWidth = 4
+
+[[menu.shortcuts]]
+  name = "<i class='fab fa-github'></i> GitHub"
+  url = "https://github.com/yjmrobert/itamae"
+  weight = 10
+
+[[menu.shortcuts]]
+  name = "<i class='fas fa-download'></i> Install"
+  url = "/docs/installation/"
+  weight = 20
