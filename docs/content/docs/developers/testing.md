@@ -232,5 +232,5 @@ Before committing:
 
 ## Next Steps
 
-- [TUI Development]({{< relref "tui" >}}) - Working with the terminal UI
-- [Release Process]({{< relref "releases" >}}) - Creating releases
+- [TUI Development]({{% relref "tui" %}}) - Working with the terminal UI
+- [Release Process]({{% relref "releases" %}}) - Creating releases

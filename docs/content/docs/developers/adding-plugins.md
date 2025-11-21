@@ -296,9 +296,9 @@ Itamae optimizes APT installations through batching:
 
 ## Testing Your Plugin
 
-See the [Testing Guide]({{< relref "testing" >}}) for details on testing plugins.
+See the [Testing Guide]({{% relref "testing" %}}) for details on testing plugins.
 
 ## Next Steps
 
-- [Testing]({{< relref "testing" >}}) - Test your plugin
-- [Contributing]({{< relref "../contributing" >}}) - Submit your plugin
+- [Testing]({{% relref "testing" %}}) - Test your plugin
+- [Contributing]({{% relref "../contributing" %}}) - Submit your plugin

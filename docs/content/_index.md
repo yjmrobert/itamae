@@ -38,16 +38,16 @@ itamae install
 
 Learn different ways to install Itamae on your system.
 
-[Get Started →]({{< relref "/docs/installation" >}})
+[Get Started →]({{% relref "/docs/installation" %}})
 
 ### 🚀 Usage
 
 Discover all the commands and features available.
 
-[View Commands →]({{< relref "/docs/usage" >}})
+[View Commands →]({{% relref "/docs/usage" %}})
 
 ### 👨‍💻 Development
 
 Want to contribute? Learn how to add new plugins.
 
-[Developer Guide →]({{< relref "/docs/developers" >}})
+[Developer Guide →]({{% relref "/docs/developers" %}})

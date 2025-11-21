@@ -138,4 +138,4 @@ If you encounter issues:
    itamae logs --follow
    ```
 
-For more help, see the [Troubleshooting Guide]({{< relref "troubleshooting" >}}).
+For more help, see the [Troubleshooting Guide]({{% relref "troubleshooting" %}}).

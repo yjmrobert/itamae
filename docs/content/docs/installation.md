@@ -97,4 +97,4 @@ itamae version
 
 Now that you have Itamae installed, learn how to use it:
 
-[Usage Guide →]({{< relref "usage" >}})
+[Usage Guide →]({{% relref "usage" %}})

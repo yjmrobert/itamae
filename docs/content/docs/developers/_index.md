@@ -34,14 +34,14 @@ itamae/
 
 ## Quick Links
 
-- [Adding Plugins]({{< relref "adding-plugins" >}}) - Create new tool plugins
-- [Testing]({{< relref "testing" >}}) - Running and writing tests
-- [TUI Development]({{< relref "tui" >}}) - Working with the terminal UI
-- [Release Process]({{< relref "releases" >}}) - Creating new releases
+- [Adding Plugins]({{% relref "adding-plugins" %}}) - Create new tool plugins
+- [Testing]({{% relref "testing" %}}) - Running and writing tests
+- [TUI Development]({{% relref "tui" %}}) - Working with the terminal UI
+- [Release Process]({{% relref "releases" %}}) - Creating new releases
 
 ## Contributing
 
-See the [Contributing Guide]({{< relref "../contributing" >}}) for guidelines on:
+See the [Contributing Guide]({{% relref "../contributing" %}}) for guidelines on:
 - Code style
 - Commit conventions
 - Pull request process

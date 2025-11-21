@@ -4,13 +4,12 @@ title = 'Itamae Documentation'
 theme = 'hugo-theme-relearn'
 
 [outputs]
-home = ['HTML', 'RSS', 'SEARCH']
+home = ['HTML', 'RSS']
 
 [params]
   # Relearn theme options
   disableNextPrev = false
   disableLandingPage = false
-  disableSearch = false
   disableLanguageSwitchingButton = true
   disableShortcutsTitle = false
   

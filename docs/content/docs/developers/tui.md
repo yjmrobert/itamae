@@ -470,5 +470,5 @@ View debug output:
 
 ## Next Steps
 
-- [Testing]({{< relref "testing" >}}) - Test your TUI changes
-- [Release Process]({{< relref "releases" >}}) - Prepare for release
+- [Testing]({{% relref "testing" %}}) - Test your TUI changes
+- [Release Process]({{% relref "releases" %}}) - Prepare for release

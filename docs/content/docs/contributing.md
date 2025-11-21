@@ -280,7 +280,7 @@ Describe how you tested the changes
 
 ## Adding New Plugins
 
-See the [Adding Plugins Guide]({{< relref "developers/adding-plugins" >}}) for detailed instructions.
+See the [Adding Plugins Guide]({{% relref "developers/adding-plugins" %}}) for detailed instructions.
 
 **Quick checklist:**
 - [ ] Script in appropriate directory (`core/`, `essentials/`, or `unverified/`)
