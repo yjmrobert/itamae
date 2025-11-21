@@ -44,7 +44,6 @@ var pluginAssertions = map[string]pluginAssertion{
 	"gh":                  {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y gh"},
 	"git":                 {install: "sudo nala install -y git", remove: "sudo apt-get purge -y git"},
 	"gnupg":               {install: "sudo nala install -y gnupg", remove: "sudo apt-get purge -y gnupg"},
-	"helm":                {install: "curl", remove: "sudo rm -f /usr/local/bin/helm"},
 	"httpie":              {install: "sudo nala install -y httpie", remove: "sudo apt-get purge -y httpie"},
 	"java":                {install: "sudo mkdir -p /etc/apt/keyrings", remove: "sudo apt-get purge -y temurin-21-jdk"},
 	"jq":                  {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
@@ -70,6 +69,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"wget":                {install: "sudo nala install -y wget", remove: "sudo apt-get purge -y wget"},
 	"wireguard":           {install: "sudo nala install -y wireguard", remove: "sudo apt-get purge -y wireguard"},
 	"yq":                  {install: "sudo curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq", remove: "sudo rm /usr/local/bin/yq"},
+	"helm":                {install: "curl", remove: "sudo rm -f /usr/local/bin/helm"},
 
 	// À la carte plugins (OMAKASE: false)
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
@@ -90,7 +90,7 @@ var pluginAssertions = map[string]pluginAssertion{
 func TestMain(m *testing.M) {
 	var cleanupPlugins func()
 	var err error
-	plugins, cleanupPlugins, err = LoadPlugins("unverified")
+	plugins, cleanupPlugins, err = LoadPlugins("core")
 	if err != nil {
 		fmt.Printf("Failed to load plugins in TestMain: %v\n", err)
 		os.Exit(1)
@@ -350,31 +350,30 @@ func TestBatchInstallSeparation(t *testing.T) {
 	binaryPlugins := []ToolPlugin{}
 	manualPlugins := []ToolPlugin{}
 
+	// Core plugins don't use OMAKASE flag - they're all installed automatically
 	for _, p := range plugins {
-		if p.Omakase {
-			switch p.InstallMethod {
-			case "apt":
-				aptPlugins = append(aptPlugins, p)
-			case "binary":
-				binaryPlugins = append(binaryPlugins, p)
-			case "manual":
-				manualPlugins = append(manualPlugins, p)
-			}
+		switch p.InstallMethod {
+		case "apt":
+			aptPlugins = append(aptPlugins, p)
+		case "binary":
+			binaryPlugins = append(binaryPlugins, p)
+		case "manual":
+			manualPlugins = append(manualPlugins, p)
 		}
 	}
 
-	// Expected counts for Omakase plugins
-	// APT: alacritty, apt-transport-https, bat, btop, ca-certificates, curl, fd, fzf, git, gnupg, httpie, jq, lsd, nala, npm, pass, pipx, python3-full, ripgrep, ruby, stow, wget, wireguard = 23
-	expectedAptCount := 23
-	// Binary: ansible, atuin, bin, dotnet-sdk-8.0, gh, helm, java, kubectl, maven, nodejs, rust, sdkman, semgrep, starship, task, tldr, vscode, yq = 18
-	expectedBinaryCount := 18
+	// Expected counts for Core plugins
+	// APT: git = 1
+	expectedAptCount := 1
+	// Binary: helm = 1
+	expectedBinaryCount := 1
 
 	if len(aptPlugins) != expectedAptCount {
-		t.Errorf("Expected %d Omakase APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))
+		t.Errorf("Expected %d Core APT plugins, got %d: %v", expectedAptCount, len(aptPlugins), getPluginNames(aptPlugins))
 	}
 
 	if len(binaryPlugins) != expectedBinaryCount {
-		t.Errorf("Expected %d Omakase binary plugins, got %d: %v", expectedBinaryCount, len(binaryPlugins), getPluginNames(binaryPlugins))
+		t.Errorf("Expected %d Core binary plugins, got %d: %v", expectedBinaryCount, len(binaryPlugins), getPluginNames(binaryPlugins))
 	}
 
 	// Verify all APT plugins have package names
