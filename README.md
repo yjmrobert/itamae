@@ -40,6 +40,27 @@ cd itamae
 sudo mv bin/itamae /usr/local/bin/
 ```
 
+#### Development Setup (Local Testing)
+
+For local development, create a symlink instead of moving the binary:
+```bash
+# Build the project
+./build.sh
+
+# Create symlink in your local bin directory
+mkdir -p ~/bin
+ln -sf ~/source/repos/itamae/bin/itamae ~/bin/itamae
+
+# Make sure ~/bin is in your PATH (add to ~/.bashrc or ~/.zshrc if not already there)
+export PATH="$HOME/bin:$PATH"
+
+# Verify the symlink
+which itamae  # Should show /home/yjmrobert/bin/itamae
+itamae version
+```
+
+This way, each time you run `./build.sh`, the symlink automatically points to the latest build.
+
 ## Check Version
 
 To check which version of Itamae you have installed:
