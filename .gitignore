@@ -1,6 +1,15 @@
+# Build output
 bin/
-docs/public/
-docs/resources/
-docs/.hugo_build.lock
+dist/
+coverage.out
+coverage.html
 
-refs/
+# Documentation site (VitePress)
+docs/node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
