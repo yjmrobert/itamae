@@ -6,10 +6,25 @@
 # INSTALL_METHOD: binary
 #
 
+ensure_deps() {
+    # The SDKMAN installer refuses to run without zip and unzip.
+    local missing=()
+    command -v zip &> /dev/null || missing+=(zip)
+    command -v unzip &> /dev/null || missing+=(unzip)
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "Installing dependencies: ${missing[*]}"
+        if command -v nala &> /dev/null; then
+            sudo nala install -y "${missing[@]}"
+        else
+            sudo apt-get install -y "${missing[@]}"
+        fi
+    fi
+}
+
 install() {
     echo "Installing SDKMan..."
-    curl -s "https://get.sdkman.io" | bash
-    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    ensure_deps
+    curl -s "https://get.sdkman.io?rcupdate=true" | bash
     echo "✅ SDKMan installed."
 }
 

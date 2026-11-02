@@ -6,19 +6,31 @@
 # INSTALL_METHOD: binary
 #
 
+BINDIR="$HOME/.local/bin"
+
+tealdeer_arch() {
+    case "$(uname -m)" in
+        x86_64) echo x86_64 ;;
+        aarch64|arm64) echo aarch64 ;;
+        *) echo "Unsupported architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
 install() {
     echo "Installing tldr (tealdeer)..."
+    local arch
+    arch=$(tealdeer_arch) || return 1
     # 'tealdeer' is the fast Rust client
-    local TLDR_URL="https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-x86_64-musl"
-    mkdir -p "$HOME/.local/bin"
-    curl -L "$TLDR_URL" -o "$HOME/.local/bin/tldr"
-    chmod +x "$HOME/.local/bin/tldr"
-    echo "✅ tldr installed to ~/.local/bin/tldr"
+    local tldr_url="https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-${arch}-musl"
+    mkdir -p "$BINDIR"
+    curl -fsSL "$tldr_url" -o "$BINDIR/tldr"
+    chmod +x "$BINDIR/tldr"
+    echo "✅ tldr installed to $BINDIR/tldr"
 }
 
 remove() {
     echo "Removing tldr..."
-    rm "$HOME/.local/bin/tldr"
+    rm -f "$BINDIR/tldr"
     echo "✅ tldr removed."
 }
 

@@ -6,7 +6,20 @@
 # INSTALL_METHOD: binary
 #
 
+ensure_pipx() {
+    if command -v pipx &> /dev/null; then
+        return 0
+    fi
+    echo "Installing pipx (required)..."
+    if command -v nala &> /dev/null; then
+        sudo nala install -y pipx
+    else
+        sudo apt-get install -y pipx
+    fi
+}
+
 install() {
+    ensure_pipx
     echo "Installing semgrep..."
     pipx install semgrep
     echo "✅ semgrep installed."

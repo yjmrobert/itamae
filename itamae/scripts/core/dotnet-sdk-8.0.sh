@@ -8,11 +8,33 @@
 # REPO_SETUP: setup_repo
 #
 
+# Ubuntu ships .NET in its own archive (22.04+) and Microsoft advises against mixing
+# it with packages.microsoft.com, so the Microsoft repository is only added on Debian.
+
+os_id() {
+    # shellcheck disable=SC1091
+    . /etc/os-release && echo "${ID:-}"
+}
+
+os_version_id() {
+    # shellcheck disable=SC1091
+    . /etc/os-release && echo "${VERSION_ID:-}"
+}
+
 setup_repo() {
-    echo "Setting up Microsoft repository..."
-    wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb 2>/dev/null
-    sudo dpkg -i /tmp/packages-microsoft-prod.deb > /dev/null 2>&1
-    rm /tmp/packages-microsoft-prod.deb
+    local id
+    id=$(os_id)
+    if [ "$id" = "ubuntu" ]; then
+        echo "Ubuntu provides .NET packages natively; no extra repository needed."
+        return 0
+    fi
+
+    local version_id
+    version_id=$(os_version_id)
+    echo "Setting up Microsoft repository for ${id} ${version_id}..."
+    curl -fsSL "https://packages.microsoft.com/config/${id}/${version_id}/packages-microsoft-prod.deb" -o /tmp/packages-microsoft-prod.deb
+    sudo dpkg -i /tmp/packages-microsoft-prod.deb > /dev/null
+    rm -f /tmp/packages-microsoft-prod.deb
     echo "✅ Microsoft repository configured."
 }
 
@@ -29,13 +51,16 @@ install() {
 remove() {
     echo "Removing .NET SDK 8.0..."
     sudo apt-get purge -y dotnet-sdk-8.0
-    sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-    sudo rm -f /etc/apt/trusted.gpg.d/microsoft.gpg
+    if [ "$(os_id)" != "ubuntu" ]; then
+        sudo apt-get purge -y packages-microsoft-prod 2>/dev/null || true
+        sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+        sudo rm -f /etc/apt/trusted.gpg.d/microsoft.gpg
+    fi
     echo "✅ .NET SDK 8.0 removed."
 }
 
 check() {
-    command -v dotnet &> /dev/null && dotnet --list-sdks | grep -q "8.0"
+    command -v dotnet &> /dev/null && dotnet --list-sdks | grep -q "^8\.0"
 }
 
 # --- ROUTER ---

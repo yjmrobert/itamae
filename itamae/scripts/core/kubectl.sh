@@ -6,15 +6,29 @@
 # INSTALL_METHOD: binary
 #
 
+k8s_arch() {
+    case "$(uname -m)" in
+        x86_64) echo amd64 ;;
+        aarch64|arm64) echo arm64 ;;
+        *) echo "Unsupported architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
 install() {
     echo "Installing kubectl..."
-    
-    # Download the latest stable version
-    curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    chmod +x kubectl
-    sudo mv kubectl /usr/local/bin/
-    
-    echo "✅ kubectl installed."
+    local arch version
+    arch=$(k8s_arch) || return 1
+    version=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+    if [ -z "$version" ]; then
+        echo "❌ Could not determine the latest kubectl version." >&2
+        return 1
+    fi
+
+    curl -fsSL -o /tmp/kubectl "https://dl.k8s.io/release/${version}/bin/linux/${arch}/kubectl"
+    chmod +x /tmp/kubectl
+    sudo mv /tmp/kubectl /usr/local/bin/kubectl
+
+    echo "✅ kubectl ${version} installed."
 }
 
 remove() {

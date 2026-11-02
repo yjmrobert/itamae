@@ -10,9 +10,12 @@
 
 setup_repo() {
     echo "Setting up Adoptium repository..."
-    sudo mkdir -p /etc/apt/keyrings
-    wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public 2>/dev/null | sudo tee /etc/apt/keyrings/adoptium.asc > /dev/null
-    echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | sudo tee /etc/apt/sources.list.d/adoptium.list > /dev/null
+    local codename
+    # shellcheck disable=SC1091
+    codename=$(. /etc/os-release && echo "${VERSION_CODENAME:-}")
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo tee /etc/apt/keyrings/adoptium.asc > /dev/null
+    echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb ${codename} main" | sudo tee /etc/apt/sources.list.d/adoptium.list > /dev/null
     echo "✅ Adoptium repository configured."
 }
 

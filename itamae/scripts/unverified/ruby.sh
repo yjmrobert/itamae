@@ -19,7 +19,7 @@ install() {
 
 remove() {
     echo "Removing Ruby..."
-    sudo apt-get purge -y ruby-full
+    sudo apt-get purge -y ruby-full ruby
     echo "✅ Ruby removed."
 }
 

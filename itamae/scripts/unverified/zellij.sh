@@ -6,17 +6,26 @@
 # INSTALL_METHOD: binary
 #
 
+zellij_arch() {
+    case "$(uname -m)" in
+        x86_64) echo x86_64 ;;
+        aarch64|arm64) echo aarch64 ;;
+        *) echo "Unsupported architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
 install() {
     echo "Installing Zellij..."
-    # Install from binary release
-    local ZELLIJ_URL="https://github.com/zellij-project/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz"
-    curl -L "$ZELLIJ_URL" | sudo tar -xz -C /usr/local/bin
+    local arch
+    arch=$(zellij_arch) || return 1
+    local zellij_url="https://github.com/zellij-project/zellij/releases/latest/download/zellij-${arch}-unknown-linux-musl.tar.gz"
+    curl -fsSL "$zellij_url" | sudo tar -xz -C /usr/local/bin zellij
     echo "✅ Zellij installed."
 }
 
 remove() {
     echo "Removing Zellij..."
-    sudo rm /usr/local/bin/zellij
+    sudo rm -f /usr/local/bin/zellij
     echo "✅ Zellij removed."
 }
 

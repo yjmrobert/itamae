@@ -1,26 +1,26 @@
 #!/bin/bash
 #
 # METADATA
-# NAME: wireguard
-# DESCRIPTION: A fast, modern, and secure VPN tunnel.
+# NAME: WireGuard
+# DESCRIPTION: Fast, modern VPN tooling (wg, wg-quick); the kernel module is built in.
 # INSTALL_METHOD: apt
-# PACKAGE_NAME: wireguard
+# PACKAGE_NAME: wireguard-tools
 #
 
 install() {
-    echo "Installing wireguard..."
+    echo "Installing WireGuard tools..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y wireguard
+        sudo nala install -y wireguard-tools
     else
-        sudo apt-get install -y wireguard
+        sudo apt-get install -y wireguard-tools
     fi
-    echo "✅ wireguard installed."
+    echo "✅ WireGuard tools installed."
 }
 
 remove() {
-    echo "Removing wireguard..."
-    sudo apt-get purge -y wireguard
-    echo "✅ wireguard removed."
+    echo "Removing WireGuard tools..."
+    sudo apt-get purge -y wireguard-tools
+    echo "✅ WireGuard tools removed."
 }
 
 check() {

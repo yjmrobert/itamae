@@ -8,21 +8,33 @@
 
 BINDIR="$HOME/.local/bin"
 
+kubecolor_arch() {
+    case "$(uname -m)" in
+        x86_64) echo amd64 ;;
+        aarch64|arm64) echo arm64 ;;
+        *) echo "Unsupported architecture: $(uname -m)" >&2; return 1 ;;
+    esac
+}
+
 install() {
     echo "Installing kubecolor..."
-    
-    # Get the latest version
-    KUBECOLOR_VERSION=$(curl -s https://api.github.com/repos/kubecolor/kubecolor/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
-    
-    # Download and install
-    wget -q https://github.com/kubecolor/kubecolor/releases/download/${KUBECOLOR_VERSION}/kubecolor_${KUBECOLOR_VERSION#v}_linux_amd64.tar.gz -P /tmp
-    tar -xzf /tmp/kubecolor_${KUBECOLOR_VERSION#v}_linux_amd64.tar.gz -C /tmp
+    local arch version tarball
+    arch=$(kubecolor_arch) || return 1
+
+    version=$(curl -fsSL https://api.github.com/repos/kubecolor/kubecolor/releases/latest | grep -oP '"tag_name": *"\K[^"]+')
+    if [ -z "$version" ]; then
+        echo "❌ Could not determine the latest kubecolor version." >&2
+        return 1
+    fi
+
+    tarball="/tmp/kubecolor_${version#v}_linux_${arch}.tar.gz"
+    curl -fsSL "https://github.com/kubecolor/kubecolor/releases/download/${version}/kubecolor_${version#v}_linux_${arch}.tar.gz" -o "$tarball"
     mkdir -p "$BINDIR"
-    mv /tmp/kubecolor "$BINDIR/"
+    tar -xzf "$tarball" -C "$BINDIR" kubecolor
     chmod +x "$BINDIR/kubecolor"
-    rm /tmp/kubecolor_${KUBECOLOR_VERSION#v}_linux_amd64.tar.gz
-    
-    echo "✅ kubecolor installed."
+    rm -f "$tarball"
+
+    echo "✅ kubecolor ${version} installed to $BINDIR."
 }
 
 remove() {
