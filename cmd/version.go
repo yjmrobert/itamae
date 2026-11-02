@@ -17,10 +17,13 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
 	Long:  `Display the version, git commit, and build date of itamae.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("itamae version %s\n", Version)
-		fmt.Printf("  commit: %s\n", GitCommit)
-		fmt.Printf("  built:  %s\n", BuildDate)
+	Args:  cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, _ []string) error {
+		out := cmd.OutOrStdout()
+		fmt.Fprintf(out, "itamae version %s\n", Version)
+		fmt.Fprintf(out, "  commit: %s\n", GitCommit)
+		fmt.Fprintf(out, "  built:  %s\n", BuildDate)
+		return nil
 	},
 }
 

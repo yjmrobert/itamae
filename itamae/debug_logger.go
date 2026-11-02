@@ -2,6 +2,7 @@ package itamae
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -63,12 +64,12 @@ func DebugLog(format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
 	line := fmt.Sprintf("[%s] %s\n", timestamp, message)
 
-	debugLog.WriteString(line)
-	debugLog.Sync() // Flush to disk immediately
+	_, _ = debugLog.WriteString(line)
+	_ = debugLog.Sync() // Flush to disk immediately
 }
 
-// CloseDebugLog closes the debug log file and prints its location
-func CloseDebugLog() {
+// CloseDebugLog closes the debug log file and prints its location to w (if not nil).
+func CloseDebugLog(w io.Writer) {
 	debugLogMux.Lock()
 	defer debugLogMux.Unlock()
 
@@ -77,10 +78,11 @@ func CloseDebugLog() {
 		DebugLog("Ended at: %s", time.Now().Format(time.RFC3339))
 		DebugLog("=============================")
 
-		debugLog.Close()
+		_ = debugLog.Close()
 
-		// Print location to stdout
-		fmt.Printf("\n📝 Debug log saved to: %s\n", debugLogPath)
+		if w != nil {
+			fmt.Fprintf(w, "\n📝 Debug log saved to: %s\n", debugLogPath)
+		}
 
 		debugLog = nil
 	}

@@ -4,8 +4,65 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
+
+// Layout constants
+const (
+	checklistRatio = 0.30
+	maxErrorsShown = 3
+)
+
+// paneWidths returns the outer widths of the checklist and log panes.
+func (m InstallModel) paneWidths() (int, int) {
+	checklistWidth := int(float64(m.width) * checklistRatio)
+	if checklistWidth < 20 {
+		checklistWidth = min(20, m.width/2)
+	}
+	logWidth := m.width - checklistWidth
+	return checklistWidth, logWidth
+}
+
+// bottomPaneHeight returns the height of the error or summary pane shown below the main panes.
+func (m InstallModel) bottomPaneHeight() int {
+	if m.complete {
+		return lipgloss.Height(renderSummary(m))
+	}
+	if len(m.errors) > 0 {
+		return lipgloss.Height(renderErrorPane(m))
+	}
+	return 0
+}
+
+// layout resizes the viewports for the current window size.
+func (m *InstallModel) layout() {
+	if m.width == 0 || m.height == 0 {
+		return
+	}
+	checklistWidth, logWidth := m.paneWidths()
+	mainHeight := m.height - m.bottomPaneHeight()
+
+	checklistStyle := ChecklistPaneStyle()
+	logStyle := LogPaneStyle()
+
+	m.checklistViewport.SetWidth(max(1, checklistWidth-checklistStyle.GetHorizontalFrameSize()))
+	m.checklistViewport.SetHeight(max(1, mainHeight-checklistStyle.GetVerticalFrameSize()))
+	m.logViewport.SetWidth(max(1, logWidth-logStyle.GetHorizontalFrameSize()))
+	m.logViewport.SetHeight(max(1, mainHeight-logStyle.GetVerticalFrameSize()))
+	m.syncViewports()
+}
+
+// syncViewports refreshes the viewport contents, keeping the log pinned to the
+// bottom while the user has not scrolled away from it.
+func (m *InstallModel) syncViewports() {
+	m.checklistViewport.SetContent(renderChecklist(*m))
+
+	atBottom := m.logViewport.AtBottom()
+	m.logViewport.SetContent(renderLogLines(*m))
+	if atBottom {
+		m.logViewport.GotoBottom()
+	}
+}
 
 // renderFullView renders the complete TUI with all panes
 func renderFullView(m InstallModel) string {
@@ -13,144 +70,73 @@ func renderFullView(m InstallModel) string {
 		return "Initializing..."
 	}
 
-	// Render main panes (checklist + logs)
-	checklistPane := renderChecklistPane(m)
-	logPane := renderLogPane(m)
+	checklistWidth, logWidth := m.paneWidths()
+	mainHeight := m.height - m.bottomPaneHeight()
 
-	// Join checklist and log panes horizontally
-	mainView := lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		checklistPane,
-		logPane,
-	)
+	checklistPane := ChecklistPaneStyle().
+		Width(checklistWidth - ChecklistPaneStyle().GetHorizontalBorderSize()).
+		Height(mainHeight - ChecklistPaneStyle().GetVerticalBorderSize()).
+		Render(m.checklistViewport.View())
+	logPane := LogPaneStyle().
+		Width(logWidth - LogPaneStyle().GetHorizontalBorderSize()).
+		Height(mainHeight - LogPaneStyle().GetVerticalBorderSize()).
+		Render(m.logViewport.View())
 
-	// Add error pane at bottom if there are errors
-	if len(m.errors) > 0 {
-		errorPane := renderErrorPane(m)
-		return lipgloss.JoinVertical(
-			lipgloss.Left,
-			mainView,
-			errorPane,
-		)
+	mainView := lipgloss.JoinHorizontal(lipgloss.Top, checklistPane, logPane)
+
+	switch {
+	case m.complete:
+		return lipgloss.JoinVertical(lipgloss.Left, mainView, renderSummary(m))
+	case len(m.errors) > 0:
+		return lipgloss.JoinVertical(lipgloss.Left, mainView, renderErrorPane(m))
+	default:
+		return mainView
 	}
-
-	return mainView
 }
 
-// renderChecklistPane renders the left checklist pane
-func renderChecklistPane(m InstallModel) string {
-	if m.width == 0 {
-		return ""
+// renderChecklist renders the content of the left checklist pane
+func renderChecklist(m InstallModel) string {
+	width := m.checklistViewport.Width()
+
+	items := []string{
+		TitleStyle.Render("📦 Packages"),
+		PhaseStyle().Render(fmt.Sprintf("Phase: %s", m.activePhase)),
+		"",
 	}
 
-	checklistWidth := int(float64(m.width) * 0.30)
-
-	// Build header
-	header := TitleStyle.Render("📦 Packages")
-	phaseInfo := PhaseStyle(m.activePhase).Render(fmt.Sprintf("Phase: %s", m.activePhase))
-
-	// Build package list
-	var items []string
-	items = append(items, header)
-	items = append(items, phaseInfo)
-	items = append(items, "") // Spacing
-
 	for _, pkg := range m.packages {
-		icon := ChecklistStyle(pkg.Status).String()
-
-		// Format package line
 		var line string
 		if pkg.Status == "running" {
-			// Show spinner for active package
-			line = fmt.Sprintf("%s %s %s",
-				m.spinner.View(),
-				PackageNameStyle().Render(pkg.Name),
-				lipgloss.NewStyle().Foreground(TokyoNightComment).Render(pkg.Progress),
-			)
+			line = fmt.Sprintf("%s %s", m.spinner.View(), PackageNameStyle().Render(pkg.Name))
 		} else {
-			line = fmt.Sprintf("%s %s",
-				icon,
-				PackageNameStyle().Render(pkg.Name),
-			)
-
-			// Add progress/error on next line if present
-			if pkg.Status == "error" && pkg.Error != "" {
-				line += "\n  " + ErrorTextStyle().Width(checklistWidth-4).Render("↳ "+pkg.Error)
-			} else if pkg.Progress != "" && pkg.Status != "pending" {
-				line += "\n  " + lipgloss.NewStyle().
-					Foreground(TokyoNightComment).
-					Render("↳ "+pkg.Progress)
-			}
+			line = fmt.Sprintf("%s %s", ChecklistStyle(pkg.Status).String(), PackageNameStyle().Render(pkg.Name))
 		}
 
+		detail := pkg.Progress
+		detailStyle := lipgloss.NewStyle().Foreground(TokyoNightComment)
+		if pkg.Status == "error" && pkg.Error != "" {
+			detail = pkg.Error
+			detailStyle = ErrorTextStyle().Background(TokyoNightBgDark)
+		}
+		if detail != "" && pkg.Status != "pending" {
+			line += "\n  " + detailStyle.Width(max(1, width-2)).Render("↳ "+detail)
+		}
 		items = append(items, line)
 	}
 
-	// Add summary if complete
-	if m.complete {
-		items = append(items, "")
-		items = append(items, strings.Repeat("─", checklistWidth-4))
-		items = append(items, fmt.Sprintf("✓ Success: %d", len(m.successful)))
-		items = append(items, fmt.Sprintf("✗ Failed:  %d", len(m.failed)))
-	}
-
-	content := strings.Join(items, "\n")
-
-	// Set viewport content and render
-	m.checklistViewport.SetContent(content)
-
-	viewportContent := m.checklistViewport.View()
-
-	// Wrap in styled pane
-	errorPaneHeight := 0
-	if len(m.errors) > 0 {
-		errorPaneHeight = 7
-	}
-	return ChecklistPaneStyle().
-		Width(checklistWidth).
-		Height(m.height - errorPaneHeight).
-		Render(viewportContent)
+	return strings.Join(items, "\n")
 }
 
-// renderLogPane renders the right log pane
-func renderLogPane(m InstallModel) string {
-	if m.width == 0 {
-		return ""
-	}
+// renderLogLines renders the content of the right log pane
+func renderLogLines(m InstallModel) string {
+	items := []string{TitleStyle.Render("📋 Installation Log"), ""}
 
-	checklistWidth := int(float64(m.width) * 0.30)
-	logWidth := m.width - checklistWidth - 6 // Account for borders and spacing
-
-	// Build header
-	header := TitleStyle.Render("📋 Installation Log")
-
-	var items []string
-	items = append(items, header)
-	items = append(items, "") // Spacing
-
-	// Add log lines
 	for _, log := range m.logs {
 		timestamp := TimestampStyle().Render(log.Timestamp.Format("15:04:05"))
-
-		var prefix string
-		switch log.Level {
-		case "success":
-			prefix = "✓"
-		case "error":
-			prefix = "✗"
-		case "warning":
-			prefix = "⚠"
-		case "info":
-			prefix = "ℹ"
-		default:
-			prefix = "·"
-		}
-
-		styledPrefix := LogLineStyle(log.Level).Render(prefix)
+		prefix := LogLineStyle(log.Level).Render(LevelIcon(log.Level))
 
 		message := log.Message
 		if log.Package != "" {
-			// Find package name
 			pkgName := log.Package
 			if idx, ok := m.packageIndex[log.Package]; ok {
 				pkgName = m.packages[idx].Name
@@ -158,48 +144,21 @@ func renderLogPane(m InstallModel) string {
 			message = PackageNameStyle().Render(pkgName) + " → " + message
 		}
 
-		line := fmt.Sprintf("%s %s %s",
-			timestamp,
-			styledPrefix,
-			LogLineStyle(log.Level).Render(message),
-		)
-
-		items = append(items, line)
+		items = append(items, fmt.Sprintf("%s %s %s", timestamp, prefix, LogLineStyle(log.Level).Render(message)))
 	}
 
-	// Show helpful hints if no logs yet
 	if len(m.logs) == 0 {
-		items = append(items, lipgloss.NewStyle().
-			Foreground(TokyoNightComment).
-			Render("Waiting for installation to begin..."))
+		items = append(items, lipgloss.NewStyle().Foreground(TokyoNightComment).Render("Waiting for installation to begin..."))
 	}
 
-	// Add navigation hint at bottom if not complete
 	if !m.complete {
-		items = append(items, "")
-		items = append(items, lipgloss.NewStyle().
+		items = append(items, "", lipgloss.NewStyle().
 			Foreground(TokyoNightComment).
 			Italic(true).
 			Render("Use ↑/↓ or j/k to scroll"))
 	}
 
-	content := strings.Join(items, "\n")
-
-	// Set viewport content (this is safe to do in View)
-	m.logViewport.SetContent(content)
-
-	// Get viewport view
-	viewportContent := m.logViewport.View()
-
-	// Wrap in styled pane
-	errorPaneHeight := 0
-	if len(m.errors) > 0 {
-		errorPaneHeight = 7
-	}
-	return LogPaneStyle().
-		Width(logWidth).
-		Height(m.height - errorPaneHeight).
-		Render(viewportContent)
+	return strings.Join(items, "\n")
 }
 
 // renderErrorPane renders the bottom error pane
@@ -208,88 +167,51 @@ func renderErrorPane(m InstallModel) string {
 		return ""
 	}
 
-	// Build header
-	header := ErrorTextStyle().Render(fmt.Sprintf("⚠ %d Error(s) Occurred", len(m.errors)))
+	items := []string{ErrorTextStyle().Render(fmt.Sprintf("⚠ %d Error(s) Occurred", len(m.errors))), ""}
 
-	var items []string
-	items = append(items, header)
-	items = append(items, "") // Spacing
-
-	// Show last 3 errors (most recent first)
 	start := 0
-	if len(m.errors) > 3 {
-		start = len(m.errors) - 3
+	if len(m.errors) > maxErrorsShown {
+		start = len(m.errors) - maxErrorsShown
 	}
 
 	for i := len(m.errors) - 1; i >= start; i-- {
 		err := m.errors[i]
-
-		// Find package name
 		pkgName := err.Package
 		if idx, ok := m.packageIndex[err.Package]; ok {
 			pkgName = m.packages[idx].Name
 		}
-
-		line := fmt.Sprintf("• %s [%s]: %s",
-			PackageNameStyle().Render(pkgName),
-			PhaseStyle(err.Phase).Render(err.Phase),
-			err.Message,
-		)
-
-		items = append(items, ErrorTextStyle().Render(line))
+		if pkgName == "" {
+			pkgName = "system"
+		}
+		items = append(items, ErrorTextStyle().Render(fmt.Sprintf("• %s [%s]: %s", pkgName, err.Phase, firstLine(err.Message))))
 	}
 
-	content := strings.Join(items, "\n")
-
-	// Wrap in styled pane
 	return ErrorPaneStyle().
-		Width(m.width - 4).
-		Render(content)
+		Width(max(1, m.width-ErrorPaneStyle().GetHorizontalBorderSize())).
+		Render(strings.Join(items, "\n"))
 }
 
-// renderSummary renders the final installation summary
+// renderSummary renders the final installation summary shown once everything finished
 func renderSummary(m InstallModel) string {
-	var items []string
+	var parts []string
 
-	items = append(items, strings.Repeat("═", 60))
-	items = append(items, "📊 INSTALLATION SUMMARY")
-	items = append(items, strings.Repeat("═", 60))
-	items = append(items, "")
+	success := lipgloss.NewStyle().Foreground(StatusSuccess).Bold(true)
+	failure := lipgloss.NewStyle().Foreground(StatusError).Bold(true)
+	skipped := lipgloss.NewStyle().Foreground(StatusSkipped).Bold(true)
 
-	if len(m.successful) > 0 {
-		items = append(items, lipgloss.NewStyle().
-			Foreground(StatusSuccess).
-			Bold(true).
-			Render(fmt.Sprintf("✅ Successfully installed (%d):", len(m.successful))))
-
-		for _, name := range m.successful {
-			items = append(items, "   • "+name)
-		}
-		items = append(items, "")
-	}
-
+	parts = append(parts, success.Render(fmt.Sprintf("✓ %d installed", len(m.successful))))
 	if len(m.failed) > 0 {
-		items = append(items, lipgloss.NewStyle().
-			Foreground(StatusError).
-			Bold(true).
-			Render(fmt.Sprintf("❌ Failed to install (%d):", len(m.failed))))
-
-		for _, name := range m.failed {
-			items = append(items, "   • "+name)
-		}
-		items = append(items, "")
+		parts = append(parts, failure.Render(fmt.Sprintf("✗ %d failed: %s", len(m.failed), strings.Join(m.failed, ", "))))
 	}
-
+	if len(m.skipped) > 0 {
+		parts = append(parts, skipped.Render(fmt.Sprintf("⊘ %d need manual steps: %s", len(m.skipped), strings.Join(m.skipped, ", "))))
+	}
 	if len(m.failed) == 0 {
-		items = append(items, lipgloss.NewStyle().
-			Foreground(StatusSuccess).
-			Bold(true).
-			Render("🎉 All packages installed successfully!"))
+		parts = append(parts, success.Render("🎉 All packages installed successfully!"))
 	}
+	parts = append(parts, lipgloss.NewStyle().Foreground(TokyoNightComment).Render("Press q or Enter to exit"))
 
-	items = append(items, "")
-	items = append(items, strings.Repeat("═", 60))
-	items = append(items, "Press 'q' or Ctrl+C to exit")
-
-	return SummaryStyle().Render(strings.Join(items, "\n"))
+	return SummaryStyle().
+		Width(max(1, m.width-SummaryStyle().GetHorizontalBorderSize())).
+		Render(strings.Join(parts, "\n"))
 }

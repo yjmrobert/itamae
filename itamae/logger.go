@@ -3,9 +3,10 @@ package itamae
 import (
 	"os"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 )
 
+// Logger is the shared structured logger for user-facing messages on stderr.
 var Logger = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller:    false,
 	ReportTimestamp: false,

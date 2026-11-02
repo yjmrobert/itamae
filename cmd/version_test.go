@@ -1,70 +1,47 @@
 package cmd
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
-func TestVersionVariables(t *testing.T) {
-	// Default values when not set via ldflags
-	if Version == "" {
-		t.Error("Version should have a default value")
-	}
-
-	if GitCommit == "" {
-		t.Error("GitCommit should have a default value")
-	}
-
-	if BuildDate == "" {
-		t.Error("BuildDate should have a default value")
-	}
-
-	// Verify default values
-	if Version != "dev" {
-		t.Logf("Version is set to: %s (expected 'dev' without ldflags)", Version)
-	}
-
-	if GitCommit != "unknown" {
-		t.Logf("GitCommit is set to: %s (expected 'unknown' without ldflags)", GitCommit)
-	}
-
-	if BuildDate != "unknown" {
-		t.Logf("BuildDate is set to: %s (expected 'unknown' without ldflags)", BuildDate)
+func TestVersionDefaults(t *testing.T) {
+	if Version == "" || GitCommit == "" || BuildDate == "" {
+		t.Fatal("version variables must have default values")
 	}
 }
 
-func TestVersionCommand(t *testing.T) {
-	// Test that version command exists
-	cmd := rootCmd
-	versionCmd, _, err := cmd.Find([]string{"version"})
-	if err != nil {
-		t.Fatalf("version command not found: %v", err)
-	}
-
-	if versionCmd.Use != "version" {
-		t.Errorf("Expected 'version', got '%s'", versionCmd.Use)
-	}
-
-	if versionCmd.Short == "" {
-		t.Error("Version command should have a short description")
-	}
-
-	if versionCmd.Long == "" {
-		t.Error("Version command should have a long description")
+func TestCommandsRegistered(t *testing.T) {
+	for _, name := range []string{"install", "check", "list", "logs", "version"} {
+		c, _, err := rootCmd.Find([]string{name})
+		if err != nil {
+			t.Fatalf("command %q not found: %v", name, err)
+		}
+		if c.Short == "" {
+			t.Errorf("command %q should have a short description", name)
+		}
 	}
 }
 
-func TestVersionFlag(t *testing.T) {
-	// Test that --version flag exists
-	flag := rootCmd.PersistentFlags().Lookup("version")
-	if flag == nil {
-		t.Fatal("--version flag not found")
-	}
+func TestVersionCommandOutput(t *testing.T) {
+	var buf bytes.Buffer
+	rootCmd.SetOut(&buf)
+	rootCmd.SetErr(&buf)
+	rootCmd.SetArgs([]string{"version"})
+	t.Cleanup(func() {
+		rootCmd.SetOut(nil)
+		rootCmd.SetErr(nil)
+		rootCmd.SetArgs(nil)
+	})
 
-	if flag.Shorthand != "v" {
-		t.Errorf("Expected shorthand 'v', got '%s'", flag.Shorthand)
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("version command failed: %v", err)
 	}
-
-	if flag.Usage == "" {
-		t.Error("Version flag should have usage text")
+	out := buf.String()
+	for _, want := range []string{"itamae version " + Version, "commit: " + GitCommit, "built:  " + BuildDate} {
+		if !strings.Contains(out, want) {
+			t.Errorf("version output missing %q:\n%s", want, out)
+		}
 	}
 }

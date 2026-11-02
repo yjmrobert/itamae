@@ -1,7 +1,9 @@
 package itamae
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"image/color"
+
+	"charm.land/lipgloss/v2"
 )
 
 // Tokyo Night color palette
@@ -40,55 +42,56 @@ var (
 
 // Base styles
 var (
-	// Base style for all text
-	BaseStyle = lipgloss.NewStyle().
-			Foreground(TokyoNightFg).
-			Background(TokyoNightBg)
-
 	// Title style for pane headers
 	TitleStyle = lipgloss.NewStyle().
-			Foreground(TokyoNightMagenta).
-			Background(TokyoNightBg).
-			Bold(true).
-			Padding(0, 1)
-
-	// Border style
-	BorderStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(TokyoNightBgHighlight).
-			Background(TokyoNightBg)
+		Foreground(TokyoNightMagenta).
+		Background(TokyoNightBg).
+		Bold(true).
+		Padding(0, 1)
 )
 
-// ChecklistStyle returns styled text for checklist items based on status
-func ChecklistStyle(status string) lipgloss.Style {
-	var color lipgloss.Color
-	var icon string
-
+// StatusColor returns the accent colour for a package status.
+func StatusColor(status string) color.Color {
 	switch status {
 	case "pending":
-		color = StatusPending
-		icon = "○"
+		return StatusPending
 	case "running":
-		color = StatusRunning
-		icon = "◉"
+		return StatusRunning
 	case "success":
-		color = StatusSuccess
-		icon = "✓"
+		return StatusSuccess
 	case "error":
-		color = StatusError
-		icon = "✗"
+		return StatusError
 	case "skipped":
-		color = StatusSkipped
-		icon = "⊘"
+		return StatusSkipped
 	default:
-		color = TokyoNightComment
-		icon = "?"
+		return TokyoNightComment
 	}
+}
 
+// StatusIcon returns the checklist icon for a package status.
+func StatusIcon(status string) string {
+	switch status {
+	case "pending":
+		return "○"
+	case "running":
+		return "◉"
+	case "success":
+		return "✓"
+	case "error":
+		return "✗"
+	case "skipped":
+		return "⊘"
+	default:
+		return "?"
+	}
+}
+
+// ChecklistStyle returns the styled status icon for a checklist item.
+func ChecklistStyle(status string) lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(color).
+		Foreground(StatusColor(status)).
 		Background(TokyoNightBg).
-		SetString(icon)
+		SetString(StatusIcon(status))
 }
 
 // ChecklistPaneStyle returns the style for the checklist pane
@@ -109,27 +112,44 @@ func LogPaneStyle() lipgloss.Style {
 		BorderForeground(TokyoNightBgHighlight)
 }
 
-// LogLineStyle returns styled text for log lines based on level
-func LogLineStyle(level string) lipgloss.Style {
-	var color lipgloss.Color
-
+// LevelColor returns the colour used for a log level.
+func LevelColor(level string) color.Color {
 	switch level {
 	case "info":
-		color = TokyoNightFg
+		return TokyoNightFg
 	case "success":
-		color = StatusSuccess
+		return StatusSuccess
 	case "warning":
-		color = StatusSkipped
+		return StatusSkipped
 	case "error":
-		color = StatusError
+		return StatusError
 	case "debug":
-		color = TokyoNightComment
+		return TokyoNightComment
 	default:
-		color = TokyoNightFgDark
+		return TokyoNightFgDark
 	}
+}
 
+// LevelIcon returns the prefix glyph used for a log level.
+func LevelIcon(level string) string {
+	switch level {
+	case "success":
+		return "✓"
+	case "error":
+		return "✗"
+	case "warning":
+		return "⚠"
+	case "info":
+		return "ℹ"
+	default:
+		return "·"
+	}
+}
+
+// LogLineStyle returns styled text for log lines based on level
+func LogLineStyle(level string) lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(color).
+		Foreground(LevelColor(level)).
 		Background(TokyoNightBg)
 }
 
@@ -152,7 +172,7 @@ func ErrorTextStyle() lipgloss.Style {
 }
 
 // PhaseStyle returns styled text for installation phases
-func PhaseStyle(phase string) lipgloss.Style {
+func PhaseStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(TokyoNightCyan).
 		Background(TokyoNightBg).
@@ -170,13 +190,6 @@ func TimestampStyle() lipgloss.Style {
 func PackageNameStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(TokyoNightBlue).
-		Background(TokyoNightBg)
-}
-
-// ProgressBarStyle returns style for progress indicators
-func ProgressBarStyle() lipgloss.Style {
-	return lipgloss.NewStyle().
-		Foreground(TokyoNightMagenta).
 		Background(TokyoNightBg)
 }
 
