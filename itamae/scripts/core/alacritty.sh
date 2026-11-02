@@ -14,6 +14,13 @@ os_id() {
     . /etc/os-release && echo "${ID:-}"
 }
 
+# apt_has_candidate succeeds when the package can actually be installed from
+# the configured repositories (apt-cache show also succeeds for packages that
+# are known but have no installation candidate).
+apt_has_candidate() {
+    apt-cache policy "$1" 2>/dev/null | grep -q "Candidate: [0-9]"
+}
+
 apt_install() {
     if command -v nala &> /dev/null; then
         sudo nala install -y "$@"
@@ -24,16 +31,16 @@ apt_install() {
 
 install() {
     echo "Installing Alacritty..."
-    if apt-cache show alacritty &> /dev/null; then
-        apt_install alacritty
+    if apt_has_candidate alacritty; then
+        apt_install alacritty || return 1
     elif [ "$(os_id)" = "ubuntu" ]; then
         echo "alacritty is not in this Ubuntu release; adding ppa:aslatter/ppa..."
         if ! command -v add-apt-repository &> /dev/null; then
-            apt_install software-properties-common
+            apt_install software-properties-common || return 1
         fi
-        sudo add-apt-repository -y ppa:aslatter/ppa
+        sudo add-apt-repository -y ppa:aslatter/ppa || return 1
         sudo apt-get update
-        apt_install alacritty
+        apt_install alacritty || return 1
     else
         echo "❌ alacritty is not available from the package repositories on this system." >&2
         return 1
@@ -44,7 +51,7 @@ install() {
 remove() {
     echo "Removing Alacritty..."
     sudo apt-get purge -y alacritty
-    if [ -f /etc/apt/sources.list.d/aslatter-ubuntu-ppa-"$(. /etc/os-release && echo "${VERSION_CODENAME:-}")".sources ] || ls /etc/apt/sources.list.d/aslatter-ubuntu-ppa-* &> /dev/null; then
+    if ls /etc/apt/sources.list.d/aslatter-ubuntu-ppa-* &> /dev/null; then
         sudo rm -f /etc/apt/sources.list.d/aslatter-ubuntu-ppa-*
     fi
     echo "✅ Alacritty removed."

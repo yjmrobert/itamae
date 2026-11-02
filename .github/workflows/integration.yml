@@ -90,11 +90,17 @@ jobs:
             itamae-test \
             bash /src/test/integration/run.sh
 
+      - name: Artifact name
+        if: always()
+        id: artifact
+        # Artifact names may not contain ':' (as in ubuntu:24.04).
+        run: echo "name=logs-${{ matrix.category }}-${{ matrix.pkg_manager }}-$(echo '${{ matrix.image }}' | tr ':' '-')" >> "$GITHUB_OUTPUT"
+
       - name: Upload itamae debug logs
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: logs-${{ matrix.category }}-${{ matrix.pkg_manager }}-${{ matrix.image }}
+          name: ${{ steps.artifact.outputs.name }}
           path: logs
           if-no-files-found: ignore
           retention-days: 7

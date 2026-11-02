@@ -43,7 +43,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"helm":                {install: "curl --silent https://raw.githubusercontent.com/helm/helm", remove: "sudo rm -f /usr/local/bin/helm"},
 	"jq":                  {install: "sudo nala install -y jq", remove: "sudo apt-get purge -y jq"},
 	"kubectl":             {install: "curl -fsSL https://dl.k8s.io/release/stable.txt", remove: "sudo rm -f /usr/local/bin/kubectl"},
-	"kubecolor":           {install: "curl -fsSL https://api.github.com/repos/kubecolor/kubecolor/releases/latest", remove: "rm -f"},
+	"kubecolor":           {install: "https://github.com/kubecolor/kubecolor/releases/latest", remove: "rm -f"},
 	"lsd":                 {install: "sudo nala install -y lsd", remove: "sudo apt-get purge -y lsd"},
 	"nala":                {install: "sudo apt-get install -y nala", remove: "sudo apt-get purge -y nala"},
 	"nodejs":              {install: "sudo nala install -y nodejs", remove: "sudo apt-get purge -y nodejs"},
@@ -68,7 +68,7 @@ var pluginAssertions = map[string]pluginAssertion{
 
 	// Unverified
 	"ansible":       {install: "pipx install", remove: "pipx uninstall ansible"},
-	"bin":           {install: "curl -fsSL https://api.github.com/repos/marcosnils/bin/releases/latest", remove: "rm -f"},
+	"bin":           {install: "https://github.com/marcosnils/bin/releases/latest", remove: "rm -f"},
 	"btop":          {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
 	"cascadia-code": {install: "curl -fsSL https://github.com/microsoft/cascadia-code/releases/download", remove: "rm -f"},
@@ -213,11 +213,16 @@ func setupTestEnvironment() (string, string, func()) {
 
 	for _, cmdName := range mockCommands {
 		scriptContent := fmt.Sprintf("#!/bin/bash\n# Mock for '%s'\necho \"%s $*\" >> %q\n", cmdName, cmdName, path)
+		if cmdName == "apt-cache" {
+			// Pretend every package has an installation candidate.
+			scriptContent += `case "$*" in policy*) echo "  Candidate: 1.0-1" ;; esac
+`
+		}
 		if cmdName == "curl" {
 			// Scripts that resolve "the latest version" parse curl output; give them something plausible.
 			scriptContent += `case "$*" in
   *stable.txt*) echo "v1.99.0" ;;
-  *releases/latest*) echo '{"tag_name": "v9.9.9"}' ;;
+  *releases/latest*) echo "https://github.com/mock/mock/releases/tag/v9.9.9" ;;
   *dlcdn.apache.org/maven*) echo '<a href="3.9.99/">3.9.99/</a>' ;;
 esac
 `

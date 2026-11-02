@@ -9,13 +9,33 @@
 # lsd is packaged in Debian 12+ and Ubuntu 23.04+. On older releases the
 # official .deb from GitHub is used instead.
 
+# latest_release_tag prints the tag of a GitHub repository's latest release.
+# It follows the /releases/latest redirect instead of calling the REST API,
+# which is rate limited for unauthenticated clients (shared CI runners hit
+# that limit constantly); the API is only used as a fallback.
+latest_release_tag() {
+    local tag
+    tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' "https://github.com/$1/releases/latest" 2>/dev/null | sed -n 's#.*/tag/##p')
+    if [ -z "$tag" ]; then
+        tag=$(curl -fsSL "https://api.github.com/repos/$1/releases/latest" 2>/dev/null | grep -oP '"tag_name": *"\K[^"]+')
+    fi
+    echo "$tag"
+}
+
+# apt_has_candidate succeeds when the package can actually be installed from
+# the configured repositories (apt-cache show also succeeds for packages that
+# are known but have no installation candidate).
+apt_has_candidate() {
+    apt-cache policy "$1" 2>/dev/null | grep -q "Candidate: [0-9]"
+}
+
 deb_arch() {
     dpkg --print-architecture 2>/dev/null || echo amd64
 }
 
 install() {
     echo "Installing lsd..."
-    if apt-cache show lsd &> /dev/null; then
+    if apt_has_candidate lsd; then
         if command -v nala &> /dev/null; then
             sudo nala install -y lsd
         else
@@ -23,13 +43,13 @@ install() {
         fi
     else
         echo "lsd is not in the distribution repositories, using the GitHub release..."
-        local version
-        version=$(curl -fsSL https://api.github.com/repos/lsd-rs/lsd/releases/latest | grep -oP '"tag_name": *"v?\K[^"]+')
+        local version arch deb
+        version=$(latest_release_tag lsd-rs/lsd)
+        version="${version#v}"
         if [ -z "$version" ]; then
             echo "❌ Could not determine the latest lsd version." >&2
             return 1
         fi
-        local arch deb
         arch=$(deb_arch)
         deb="/tmp/lsd_${version}_${arch}.deb"
         curl -fsSL "https://github.com/lsd-rs/lsd/releases/download/v${version}/lsd_${version}_${arch}.deb" -o "$deb"

@@ -115,9 +115,19 @@ func (e *engineEnv) commands() []string {
 	return lines
 }
 
+// look resolves commands against the mock directory only, so a nala installed on
+// the host cannot leak into the tests.
+func (e *engineEnv) look(name string) (string, error) {
+	p := filepath.Join(e.dir, name)
+	if _, err := os.Stat(p); err != nil {
+		return "", err
+	}
+	return p, nil
+}
+
 func (e *engineEnv) run(plugins []ToolPlugin, inputs map[string]string) (*recordingSender, InstallResult) {
 	sender := &recordingSender{}
-	in := &Installer{Plugins: plugins, Inputs: inputs, Sender: sender, prereqs: func() []string { return nil }}
+	in := &Installer{Plugins: plugins, Inputs: inputs, Sender: sender, lookPath: e.look, prereqs: func() []string { return nil }}
 	return sender, in.Run(context.Background())
 }
 
@@ -276,7 +286,7 @@ func TestInstallerSkipVerify(t *testing.T) {
 	plugins := []ToolPlugin{env.plugin("ghost", "binary", 1, 0)}
 
 	sender := &recordingSender{}
-	in := &Installer{Plugins: plugins, Sender: sender, SkipVerify: true, prereqs: func() []string { return nil }}
+	in := &Installer{Plugins: plugins, Sender: sender, SkipVerify: true, lookPath: env.look, prereqs: func() []string { return nil }}
 	result := in.Run(context.Background())
 
 	if !result.OK() || indexOf(env.commands(), "ghost check") >= 0 {
@@ -310,7 +320,7 @@ func TestInstallerInstallsMissingPrerequisites(t *testing.T) {
 	plugins := []ToolPlugin{env.plugin("gitx", "apt", 0, 0, "repo")}
 
 	sender := &recordingSender{}
-	in := &Installer{Plugins: plugins, Sender: sender, prereqs: func() []string { return []string{"curl", "gnupg"} }}
+	in := &Installer{Plugins: plugins, Sender: sender, lookPath: env.look, prereqs: func() []string { return []string{"curl", "gnupg"} }}
 	result := in.Run(context.Background())
 	cmds := env.commands()
 
@@ -347,7 +357,7 @@ func TestInstallerCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	sender := &recordingSender{}
-	in := &Installer{Plugins: plugins, Sender: sender, prereqs: func() []string { return nil }}
+	in := &Installer{Plugins: plugins, Sender: sender, lookPath: env.look, prereqs: func() []string { return nil }}
 	result := in.Run(ctx)
 
 	if len(result.Failed) != 2 {

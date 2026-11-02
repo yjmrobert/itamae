@@ -8,6 +8,19 @@
 
 BINDIR="$HOME/.local/bin"
 
+# latest_release_tag prints the tag of a GitHub repository's latest release.
+# It follows the /releases/latest redirect instead of calling the REST API,
+# which is rate limited for unauthenticated clients (shared CI runners hit
+# that limit constantly); the API is only used as a fallback.
+latest_release_tag() {
+    local tag
+    tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' "https://github.com/$1/releases/latest" 2>/dev/null | sed -n 's#.*/tag/##p')
+    if [ -z "$tag" ]; then
+        tag=$(curl -fsSL "https://api.github.com/repos/$1/releases/latest" 2>/dev/null | grep -oP '"tag_name": *"\K[^"]+')
+    fi
+    echo "$tag"
+}
+
 kubecolor_arch() {
     case "$(uname -m)" in
         x86_64) echo amd64 ;;
@@ -21,7 +34,7 @@ install() {
     local arch version tarball
     arch=$(kubecolor_arch) || return 1
 
-    version=$(curl -fsSL https://api.github.com/repos/kubecolor/kubecolor/releases/latest | grep -oP '"tag_name": *"\K[^"]+')
+    version=$(latest_release_tag kubecolor/kubecolor)
     if [ -z "$version" ]; then
         echo "❌ Could not determine the latest kubecolor version." >&2
         return 1
