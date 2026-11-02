@@ -4,12 +4,14 @@ Learn about Itamae's Terminal User Interface architecture and how to extend it.
 
 ## Overview
 
-Itamae's TUI is built with the [Charm](https://charm.sh/) ecosystem, providing a modern, interactive terminal experience using:
+Itamae's TUI is built with the [Charm](https://charm.sh/) ecosystem, using the v2 generation of the libraries published under the `charm.land` module path:
 
-- **[Bubbletea](https://github.com/charmbracelet/bubbletea)**: The Elm-inspired framework for building terminal apps
-- **[Bubbles](https://github.com/charmbracelet/bubbles)**: Pre-built TUI components (viewport, spinner, etc.)
-- **[Lipgloss](https://github.com/charmbracelet/lipgloss)**: Style definitions and layouts
-- **[Huh](https://github.com/charmbracelet/huh)**: Interactive forms for user input
+- **[Bubble Tea v2](https://github.com/charmbracelet/bubbletea)** (`charm.land/bubbletea/v2`): the Elm-inspired framework for terminal apps
+- **[Bubbles v2](https://github.com/charmbracelet/bubbles)** (`charm.land/bubbles/v2`): viewport and spinner components
+- **[Lip Gloss v2](https://github.com/charmbracelet/lipgloss)** (`charm.land/lipgloss/v2`): styles and layout
+- **[Huh v2](https://github.com/charmbracelet/huh)** (`charm.land/huh/v2`): interactive forms
+- **[Log v2](https://github.com/charmbracelet/log)** (`charm.land/log/v2`): structured logging
+- **[Fang](https://github.com/charmbracelet/fang)**: styled help, errors, `--version`, man pages and completions for the Cobra CLI
 
 ## Architecture
 
@@ -17,453 +19,207 @@ Itamae's TUI is built with the [Charm](https://charm.sh/) ecosystem, providing a
 
 ```
 itamae/
-├── theme.go           # Tokyo Night color scheme and styles
-├── tui_model.go       # Bubbletea model and state management
-├── tui_view.go        # View rendering (layout and display)
-├── tui_orchestrator.go # Installation orchestration
-└── executor.go        # Async command execution
+├── theme.go       # Tokyo Night color scheme and styles
+├── tui_model.go   # Bubble Tea model, messages and state management
+├── tui_view.go    # View rendering (layout and display)
+├── run.go         # RunInstallTUI / RunInstallPlain, PlainSender, PrintSummary
+├── forms.go       # Huh forms (category, multi-select, confirm, text input)
+└── engine.go      # Installer: produces the messages the TUI consumes
 ```
 
 ### Data Flow
 
 ```
-User Input → Huh Forms → Bubbletea Model → Orchestrator → Executor
-                              ↓                              ↓
-                         View Rendering ← Message Updates ← Script Output
+Huh forms ──► cmd/install.go ──► Installer.Run(ctx)
+                                     │  Sender.Send(msg)
+                                     ▼
+                     *tea.Program (TUI)  or  PlainSender (--plain / CI)
+                                     │
+                                     ▼
+                           InstallModel.Update ──► View
 ```
+
+The `Installer` never touches the UI directly. It emits messages through the `Sender` interface, so the same engine powers the TUI, the plain-text mode and the unit tests.
 
 ## Theme System
 
-### Tokyo Night Color Palette
-
-Defined in `itamae/theme.go`:
+Colours are plain `color.Color` values created with `lipgloss.Color`, defined in `itamae/theme.go`:
 
 ```go
 var (
-    ColorBackground   = lipgloss.Color("#1a1b26")  // Dark background
-    ColorForeground   = lipgloss.Color("#c0caf5")  // Light text
-    ColorComment      = lipgloss.Color("#565f89")  // Dim gray
-    ColorCyan         = lipgloss.Color("#7dcfff")  // Bright cyan
-    ColorGreen        = lipgloss.Color("#9ece6a")  // Success green
-    ColorYellow       = lipgloss.Color("#e0af68")  // Warning yellow
-    ColorRed          = lipgloss.Color("#f7768e")  // Error red
-    ColorPurple       = lipgloss.Color("#bb9af7")  // Accent purple
-    ColorBlue         = lipgloss.Color("#7aa2f7")  // Info blue
+    TokyoNightBg      = lipgloss.Color("#1a1b26")
+    TokyoNightFg      = lipgloss.Color("#c0caf5")
+    TokyoNightComment = lipgloss.Color("#565f89")
+    TokyoNightBlue    = lipgloss.Color("#7aa2f7") // info / running
+    TokyoNightGreen   = lipgloss.Color("#9ece6a") // success
+    TokyoNightYellow  = lipgloss.Color("#e0af68") // warning / skipped
+    TokyoNightRed     = lipgloss.Color("#f7768e") // error
+    TokyoNightMagenta = lipgloss.Color("#bb9af7") // titles
 )
 ```
 
-### Style Definitions
+Helpers such as `StatusColor(status)`, `StatusIcon(status)`, `LevelColor(level)` and `LevelIcon(level)` keep icons and colours consistent between the TUI, the plain output and `itamae logs`.
 
-Common styles:
+Lip Gloss v2 does not detect the terminal's colour support by itself. Bubble Tea handles that for the TUI; everything printed outside the TUI goes through a `colorprofile.Writer`, which downgrades colours to what the terminal supports and strips them when the output is not a terminal.
 
-```go
-var (
-    StyleBase        = lipgloss.NewStyle().Foreground(ColorForeground)
-    StyleTitle       = StyleBase.Bold(true).Foreground(ColorCyan)
-    StyleSuccess     = StyleBase.Foreground(ColorGreen)
-    StyleError       = StyleBase.Foreground(ColorRed)
-    StyleInfo        = StyleBase.Foreground(ColorBlue)
-    StyleDim         = StyleBase.Foreground(ColorComment)
-    StyleBorder      = lipgloss.NewStyle().BorderForeground(ColorComment)
-)
-```
+## Bubble Tea Model
 
-### Using Styles
+### Messages
 
-```go
-// Apply style to text
-styledText := StyleSuccess.Render("✅ Installation complete")
+The installer sends these messages (defined in `tui_model.go`):
 
-// Combine styles
-titleStyle := StyleTitle.Bold(true).Underline(true)
-```
+| Message | Meaning |
+|---------|---------|
+| `PhaseStartMsg{Phase, Count}` | A phase (`repo_setup`, `apt_batch`, `individual`) begins |
+| `PhaseCompleteMsg{Phase}` | A phase finished |
+| `PackageStartMsg{PackageID, Phase}` | Work on a package starts (`repo_setup`, `install`, `post_install`, `verify`) |
+| `ProgressMsg{PackageID, Progress}` | Progress text for a package |
+| `PackageCompleteMsg{PackageID, Success, Skipped, Error}` | Final state of a package |
+| `LogMsg{Level, Package, Message}` | A log line |
+| `ErrorMsg{Package, Phase, Message}` | A structured error for the error pane |
+| `SummaryMsg{Successful, Failed, Skipped}` | The run is complete |
 
-## Bubbletea Model
-
-### Model Structure
-
-The main model in `itamae/tui_model.go`:
+### Model and Update
 
 ```go
 type InstallModel struct {
-    packages       []Package      // List of packages to install
-    logs           []string       // Installation logs
-    errors         []string       // Error messages
-    viewport       viewport.Model // Scrollable log pane
-    errorViewport  viewport.Model // Scrollable error pane
-    spinner        spinner.Model  // Loading spinner
-    width          int           // Terminal width
-    height         int           // Terminal height
-    installDone    bool          // Installation complete flag
-    currentPackage string        // Currently installing package
-}
-```
-
-### Message Types
-
-Messages drive state updates:
-
-```go
-// Phase transition (repository setup, batch install, individual install)
-type PhaseStartMsg struct {
-    Phase int
-    Name  string
+    packages          []PackageStatus
+    logs              []LogLine
+    errors            []ErrorInfo
+    checklistViewport viewport.Model
+    logViewport       viewport.Model
+    spinner           spinner.Model
+    width, height     int
+    complete          bool
 }
 
-// Package installation started
-type PackageStartMsg struct {
-    Name string
-}
-
-// Package installation completed
-type PackageCompleteMsg struct {
-    Name    string
-    Success bool
-    Error   string
-}
-
-// Log line received
-type LogMsg struct {
-    Line string
-}
-
-// Error occurred
-type ErrorMsg struct {
-    Error string
-}
-
-// Installation summary
-type SummaryMsg struct {
-    Successful int
-    Failed     int
-}
-```
-
-### Update Function
-
-Handle messages and update state:
-
-```go
 func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
-    case PhaseStartMsg:
-        // Update current phase
-        m.logs = append(m.logs, formatPhaseStart(msg))
-        
-    case PackageStartMsg:
-        // Update current package
-        m.currentPackage = msg.Name
-        
-    case PackageCompleteMsg:
-        // Mark package as complete
-        updatePackageStatus(m.packages, msg.Name, msg.Success)
-        
-    case LogMsg:
-        // Append to logs
-        m.logs = append(m.logs, msg.Line)
-        m.viewport.SetContent(strings.Join(m.logs, "\n"))
-        m.viewport.GotoBottom()
-        
-    case ErrorMsg:
-        // Add error
-        m.errors = append(m.errors, msg.Error)
-        m.errorViewport.SetContent(strings.Join(m.errors, "\n"))
-        
-    case tea.KeyMsg:
-        // Handle keyboard input
+    case tea.KeyPressMsg:          // v2: KeyPressMsg instead of KeyMsg
         switch msg.String() {
-        case "q", "ctrl+c":
-            if m.installDone {
+        case "ctrl+c":
+            return m, tea.Quit
+        case "q", "enter", "esc":
+            if m.complete {
                 return m, tea.Quit
             }
-        case "j", "down":
-            m.viewport.LineDown(1)
-        case "k", "up":
-            m.viewport.LineUp(1)
+        case "up", "k":
+            m.logViewport.ScrollUp(1)
+        case "down", "j":
+            m.logViewport.ScrollDown(1)
         }
+    case tea.WindowSizeMsg:
+        m.width, m.height = msg.Width, msg.Height
+        m.layout()
+    case PackageCompleteMsg:
+        // update the checklist entry
     }
-    
+    m.syncViewports()
     return m, nil
+}
+```
+
+### View
+
+In Bubble Tea v2 `View()` returns a `tea.View` rather than a string. Alternate screen and mouse support are requested on the view:
+
+```go
+func (m InstallModel) View() tea.View {
+    v := tea.NewView(renderFullView(m))
+    v.AltScreen = true
+    v.MouseMode = tea.MouseModeCellMotion
+    return v
 }
 ```
 
 ## View Rendering
 
-### Layout System
-
-The view in `itamae/tui_view.go` uses a three-pane layout:
+The layout has two main panes and an optional bottom pane:
 
 ```
-┌────────────────────────────────────────────────────┐
-│                    Header                          │
-├──────────────────┬─────────────────────────────────┤
-│   Checklist      │      Logs                       │
-│   (30% width)    │      (70% width)                │
-│                  │                                 │
-│ ⏳ git           │ [12:34:56] Installing git...    │
-│ ⏳ nodejs        │ [12:34:57] apt-get install git  │
-│ ⏳ python        │ [12:34:58] ✅ git installed     │
-│                  │                                 │
+┌──────────────────┬─────────────────────────────────┐
+│ 📦 Packages      │ 📋 Installation Log             │
+│ Phase: apt_batch │ 12:34:56 ℹ Starting phase ...   │
+│ ✓ git            │ 12:34:57 ✓ git → Installed      │
+│ ◉ nodejs         │ 12:34:58 ℹ nodejs → Verifying   │
+│   ↳ Verifying... │                                 │
+│ ○ helm           │                                 │
 ├──────────────────┴─────────────────────────────────┤
-│                  Errors (if any)                   │
+│ ⚠ 1 Error(s) Occurred   /   📊 summary when done   │
 └────────────────────────────────────────────────────┘
 ```
 
-### Checklist Rendering
+- `renderChecklist` renders the left pane (30% of the width) with status icons and a spinner for running packages
+- `renderLogLines` renders timestamped, colour-coded log lines; the viewport stays pinned to the bottom until the user scrolls up
+- `renderErrorPane` shows the three most recent errors
+- `renderSummary` replaces the error pane once the run is complete
 
-```go
-func (m InstallModel) renderChecklist() string {
-    var items []string
-    
-    for _, pkg := range m.packages {
-        icon := getStatusIcon(pkg.Status)
-        style := getStatusStyle(pkg.Status)
-        
-        if pkg.Name == m.currentPackage {
-            icon = m.spinner.View()
-        }
-        
-        item := fmt.Sprintf("%s %s", icon, pkg.Name)
-        items = append(items, style.Render(item))
-    }
-    
-    return lipgloss.JoinVertical(lipgloss.Left, items...)
-}
-```
+Viewport sizes are derived from the pane styles (`GetHorizontalFrameSize`, `GetVerticalFrameSize`) so borders and padding never push content off screen.
 
-### Log Rendering
+## Plain Mode
 
-```go
-func (m InstallModel) renderLogs() string {
-    return StyleBorder.
-        Border(lipgloss.RoundedBorder()).
-        Width(int(float64(m.width) * 0.7)).
-        Height(m.height - 10).
-        Render(m.viewport.View())
-}
-```
-
-### Error Rendering
-
-```go
-func (m InstallModel) renderErrors() string {
-    if len(m.errors) == 0 {
-        return ""
-    }
-    
-    return StyleError.
-        Border(lipgloss.RoundedBorder()).
-        BorderForeground(ColorRed).
-        Width(m.width - 4).
-        Render(m.errorViewport.View())
-}
-```
-
-## Async Execution
-
-### Running Scripts
-
-Execute shell scripts asynchronously in `itamae/executor.go`:
-
-```go
-func ExecuteScriptAsyncCmd(scriptPath string, args []string) tea.Cmd {
-    return func() tea.Msg {
-        cmd := exec.Command(scriptPath, args...)
-        
-        // Capture output
-        stdout, _ := cmd.StdoutPipe()
-        stderr, _ := cmd.StderrPipe()
-        
-        // Start command
-        if err := cmd.Start(); err != nil {
-            return ErrorMsg{Error: err.Error()}
-        }
-        
-        // Stream output
-        go func() {
-            scanner := bufio.NewScanner(stdout)
-            for scanner.Scan() {
-                // Send log message
-                program.Send(LogMsg{Line: scanner.Text()})
-            }
-        }()
-        
-        // Wait for completion
-        err := cmd.Wait()
-        
-        return PackageCompleteMsg{
-            Name:    scriptName,
-            Success: err == nil,
-            Error:   errorString(err),
-        }
-    }
-}
-```
+`RunInstallPlain` uses `PlainSender`, which renders the same messages as indented, colour-aware lines, and streams the raw script output underneath. It is used for `--plain`, whenever stdout is not a terminal, and in CI.
 
 ## Interactive Forms
 
-### Package Selection Form
-
-Using Huh for multi-select:
+Forms live in `itamae/forms.go` and use Huh v2:
 
 ```go
-func showPackageSelectionForm(packages []string) ([]string, error) {
-    var selected []string
-    
-    form := huh.NewForm(
-        huh.NewGroup(
-            huh.NewMultiSelect[string]().
-                Title("Select packages to install").
-                Options(huh.NewOptions(packages...)...).
-                Value(&selected).
-                Height(15),
-        ),
-    ).WithTheme(huh.ThemeCharm())
-    
+func SelectPlugins(plugins []ToolPlugin) ([]ToolPlugin, error) {
+    var selectedIDs []string
+    form := huh.NewForm(huh.NewGroup(
+        huh.NewMultiSelect[string]().
+            Title("Available Tools").
+            Options(options...).
+            Value(&selectedIDs).
+            Height(30),
+    ))
     if err := form.Run(); err != nil {
         return nil, err
     }
-    
-    return selected, nil
+    return FilterPlugins(plugins, selectedIDs)
 }
 ```
 
-### Confirmation Dialog
+`cmd/install.go` only shows a form when the corresponding flag was not given and both stdin and stdout are terminals.
 
-```go
-func showConfirmation(message string) (bool, error) {
-    var confirm bool
-    
-    form := huh.NewForm(
-        huh.NewGroup(
-            huh.NewConfirm().
-                Title(message).
-                Value(&confirm),
-        ),
-    ).WithTheme(huh.ThemeCharm())
-    
-    if err := form.Run(); err != nil {
-        return false, err
-    }
-    
-    return confirm, nil
-}
-```
+## Testing the TUI
 
-## Orchestration
-
-### Installation Flow
-
-Coordinated in `itamae/tui_orchestrator.go`:
-
-```go
-func processInstallTUI(packages []Package, program *tea.Program) {
-    // Phase 0: Repository Setup
-    program.Send(PhaseStartMsg{Phase: 0, Name: "Repository Setup"})
-    for _, pkg := range packages {
-        if pkg.RepoSetup != "" {
-            runRepoSetup(pkg, program)
-        }
-    }
-    
-    // Phase 1: Batch APT Installation
-    program.Send(PhaseStartMsg{Phase: 1, Name: "Batch Installation"})
-    aptPackages := filterAPTPackages(packages)
-    runBatchInstall(aptPackages, program)
-    
-    // Phase 2: Individual Installation
-    program.Send(PhaseStartMsg{Phase: 2, Name: "Individual Installation"})
-    for _, pkg := range filterNonAPTPackages(packages) {
-        runIndividualInstall(pkg, program)
-    }
-    
-    // Summary
-    program.Send(SummaryMsg{
-        Successful: countSuccessful(packages),
-        Failed:     countFailed(packages),
-    })
-}
-```
-
-## Best Practices
-
-### Style Consistency
-
-- Always use theme colors
-- Apply consistent spacing and borders
-- Use status icons consistently
-
-### Performance
-
-- Use viewports for large content
-- Batch updates when possible
-- Debounce rapid updates
-
-### Error Handling
-
-- Always display errors to users
-- Log errors for debugging
-- Provide recovery options
-
-### Accessibility
-
-- Use clear status indicators
-- Provide keyboard navigation
-- Display help text when needed
-
-## Testing TUI
-
-### Manual Testing
+The engine is covered by unit tests with a recording `Sender`; the TUI itself is best checked manually:
 
 ```bash
-# Build and run
 ./build.sh
-./bin/itamae install
-```
-
-### Debugging
-
-Add debug output:
-
-```go
-// In Update function
-fmt.Fprintf(os.Stderr, "DEBUG: Received message: %T\n", msg)
-```
-
-View debug output:
-
-```bash
-./bin/itamae install 2> debug.log
+./bin/itamae install                       # TUI
+./bin/itamae install -c core --yes --plain # same engine, plain output
 ```
 
 ## Extending the TUI
 
 ### Adding New Panes
 
-1. Update model with new viewport
-2. Add rendering function in `tui_view.go`
-3. Update layout to include new pane
+1. Add a viewport to `InstallModel` and size it in `layout()`
+2. Add a rendering function in `tui_view.go`
+3. Include it in `renderFullView`
 
 ### Adding New Messages
 
-1. Define message type in `tui_model.go`
-2. Handle in `Update()` function
-3. Send from orchestrator or executor
+1. Define the message type in `tui_model.go`
+2. Handle it in `Update()` and, if useful, in `PlainSender.Send`
+3. Send it from `engine.go`
 
-### Customizing Theme
+### Customizing the Theme
 
-1. Modify colors in `theme.go`
-2. Update style definitions
-3. Rebuild and test
+Modify the colours in `theme.go`; every style derives from them.
 
 ## Resources
 
-- [Bubbletea Tutorial](https://github.com/charmbracelet/bubbletea/tree/master/tutorials)
-- [Bubbles Components](https://github.com/charmbracelet/bubbles)
-- [Lipgloss Docs](https://github.com/charmbracelet/lipgloss)
-- [Huh Examples](https://github.com/charmbracelet/huh/tree/main/examples)
+- [Bubble Tea](https://github.com/charmbracelet/bubbletea)
+- [Bubbles](https://github.com/charmbracelet/bubbles)
+- [Lip Gloss](https://github.com/charmbracelet/lipgloss)
+- [Huh](https://github.com/charmbracelet/huh)
+- [Fang](https://github.com/charmbracelet/fang)
 
 ## Next Steps
 
-- [Testing](/developers/testing) - Test your TUI changes
+- [Testing](/developers/testing) - Test your changes
 - [Release Process](/developers/releases) - Prepare for release

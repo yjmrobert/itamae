@@ -46,7 +46,7 @@ Start your script with metadata:
 # PACKAGE_NAME: actual-package-name  # For apt only
 # REPO_SETUP: setup_repo              # Optional
 # POST_INSTALL: post_install          # Optional
-# REQUIRES: VAR_NAME|Prompt text      # Optional
+# REQUIRES: VAR_NAME|Prompt text|default command   # Optional, repeatable
 #
 ```
 
@@ -283,15 +283,35 @@ Itamae optimizes APT installations through batching:
 
 ## Best Practices
 
-1. **Use nala when available**: Check for `nala` before falling back to `apt-get`
-2. **Create symlinks in `$HOME/.local/bin`**: Don't require root for symlinks
-3. **Echo progress messages**: Keep users informed
-4. **Clean up on remove**: Delete all installed files and configs
-5. **Test the `check()` function**: Ensure it accurately detects installation
+- **Prefer `nala`, fall back to `apt-get`** in `install()` for APT tools; the batch phase does the same automatically.
+- **Use `curl` in `setup_repo()`**. `curl`, `gnupg` and `ca-certificates` are installed before repository setup runs, `wget` is not.
+- **Detect the architecture** with `uname -m` when downloading binaries. Releases ship for `amd64` and `arm64`; map to the upstream naming (`x86_64`/`aarch64`, `amd64`/`arm64`, `x64`/`arm64`) as needed.
+- **Install user binaries into `~/.local/bin`**. Itamae puts `~/.local/bin`, `~/.cargo/bin` and `~/.atuin/bin` on `PATH` when running scripts and `check()`.
+- **Install your own dependencies.** If the script needs `unzip`, `zip` or `fontconfig`, install them inside the script (see `cascadia-code.sh` or `sdkman.sh`).
+- **Make `check()` honest.** It must exit 0 only when the tool is usable, and it must fail after `remove()`. Itamae runs it after every install; a tool whose check fails is reported as a failure, and the integration tests assert the removal side.
+- **Keep scripts quiet about prompts.** Scripts run with `DEBIAN_FRONTEND=noninteractive` and no stdin; never ask questions. Declare inputs with `REQUIRES` instead.
+- **Pass ShellCheck.** `shellcheck -S warning itamae/scripts/*/*.sh` runs in CI.
+
+## Verification
+
+After `install()` (or the batch install plus `post_install()`), Itamae runs `check()`. In the TUI the package moves through `Installing...`, `Running post-install...` and `Verifying...` before it is marked ✓. Manual plugins (`INSTALL_METHOD: manual`) are reported as "manual steps required" and are not verified.
 
 ## Testing Your Plugin
 
-See the [Testing Guide](/developers/testing) for details on testing plugins.
+1. Register the plugin in `itamae/main_test.go`: add it to `expectedMetadata` (category, method, package name) and to `pluginAssertions` (a command fragment expected during `install` and `remove`). The suite fails for unregistered scripts, so the catalogue is always deliberate.
+2. Run the mocked script tests:
+   ```bash
+   go test ./itamae -run 'TestInstall|TestUninstall|TestRepoSetup|TestMetadataParsing|TestRouterRejectsUnknownAction'
+   ```
+3. Try it for real, headlessly:
+   ```bash
+   go run . install --category unverified --plugins my-tool --yes --plain
+   go run . check --plugins my-tool
+   bash itamae/scripts/unverified/my-tool.sh remove
+   ```
+4. Push: the Integration workflow installs the whole category on Ubuntu 22.04/24.04 and Debian 12/13, with both `nala` and `apt-get`, and removes it again.
+
+See [Testing](/developers/testing) for the full picture.
 
 ## Next Steps
 

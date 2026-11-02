@@ -13,17 +13,36 @@ curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh 
 ```
 
 This will:
-- ✅ Download the latest release
+- ✅ Install the prerequisites (`git`, and `nala` where available)
+- ✅ Download the latest release (or upgrade an existing installation)
 - ✅ Install it to `/usr/local/bin`
-- ✅ Make it available system-wide
+- ✅ Start the interactive installer
 
 :::warning Security Note
 Always review scripts before piping to bash. You can inspect the install script at: [install.sh](https://github.com/yjmrobert/itamae/blob/master/install.sh)
 :::
 
-## Install Specific Version
+## Unattended Installation
 
-You can install a specific version by setting the `ITAMAE_VERSION` environment variable:
+The install script can be driven entirely by environment variables, which makes it suitable for provisioning scripts, cloud-init or dotfile bootstrappers:
+
+```bash
+ITAMAE_INSTALL_ARGS="--category core --yes" \
+GIT_USER_NAME="Jane Doe" GIT_USER_EMAIL="jane@example.com" \
+  curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
+```
+
+| Variable | Purpose |
+|----------|---------|
+| `ITAMAE_VERSION` | Install a specific release (e.g. `v1.0.0`) instead of the latest |
+| `ITAMAE_INSTALL_DIR` | Where to put the binary (default `/usr/local/bin`) |
+| `ITAMAE_INSTALL_ARGS` | Arguments for the `itamae install` run that follows the installation |
+| `ITAMAE_SKIP_RUN=1` | Only install the binary and do not run `itamae install` |
+| `ITAMAE_SKIP_PREREQS=1` | Skip `apt-get update` and the git/nala installation |
+
+The script compares the installed version with the target and only downloads when an upgrade (or an explicit downgrade via `ITAMAE_VERSION`) is needed.
+
+## Install Specific Version
 
 ```bash
 ITAMAE_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
@@ -31,7 +50,7 @@ ITAMAE_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/yjmrobert/ita
 
 ## Install with Go
 
-If you have Go 1.24+ installed:
+If you have Go 1.26+ installed:
 
 ```bash
 # Latest version
@@ -68,7 +87,7 @@ For local development, create a symlink instead:
 
 # Create symlink in your local bin directory
 mkdir -p ~/bin
-ln -sf ~/source/repos/itamae/bin/itamae ~/bin/itamae
+ln -sf "$PWD/bin/itamae" ~/bin/itamae
 
 # Add ~/bin to PATH (add to ~/.bashrc or ~/.zshrc)
 export PATH="$HOME/bin:$PATH"
@@ -82,10 +101,9 @@ This way, each time you run `./build.sh`, the symlink automatically points to th
 
 ## Verify Installation
 
-Check that Itamae is installed correctly:
-
 ```bash
 itamae version
+itamae list
 ```
 
 ## Next Steps

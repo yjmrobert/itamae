@@ -221,8 +221,9 @@ More content...
 
 ```bash
 cd docs
-hugo server
-# Visit http://localhost:1313
+npm install
+npm run docs:dev
+# Visit http://localhost:5173
 ```
 
 ## Pull Request Process
@@ -230,8 +231,10 @@ hugo server
 ### Before Submitting
 
 - [ ] Code follows style guidelines
-- [ ] Tests pass: `go test ./...`
-- [ ] Code is formatted: `go fmt ./...`
+- [ ] Tests pass: `go test -race ./...`
+- [ ] Code is formatted: `gofmt -l .` prints nothing
+- [ ] Lint is clean: `golangci-lint run` and `shellcheck -S warning itamae/scripts/*/*.sh install.sh`
+- [ ] New plugins are registered in `itamae/main_test.go`
 - [ ] Documentation is updated
 - [ ] Commits follow conventional format
 - [ ] Branch is up to date with master

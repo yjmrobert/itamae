@@ -6,13 +6,11 @@ Common issues and their solutions.
 
 ### Permission Denied
 
-If you see permission errors:
+Do **not** run `itamae` with `sudo`: it would install user-level tools into root's home directory. Itamae asks for your password once up front (`sudo -v`) and keeps the session alive while it installs. If you see permission errors, make sure your user is allowed to use `sudo`:
 
 ```bash
-sudo itamae install
+sudo -v && echo "sudo works"
 ```
-
-Some packages require root privileges for installation.
 
 ### Package Not Found
 
@@ -33,10 +31,14 @@ If a package can't be found:
 For network-related issues:
 
 1. Check your internet connection
-2. Try again with verbose logging:
+2. Inspect the complete command output in the debug log:
    ```bash
-   itamae install
    itamae logs --grep "download\|fetch\|curl"
+   ```
+3. Re-run only the tools that failed:
+   ```bash
+   itamae check --category core          # shows what is missing
+   itamae install -c core -p helm,kubectl --yes
    ```
 
 ## Debug Logging

@@ -40,164 +40,82 @@ go tool cover -html=coverage.out -o coverage.html
 
 ## Testing Approach
 
-Itamae uses a **mock-based testing approach** for shell script plugins. Due to environment limitations, full integration tests would require root access and could modify the system state. Instead, we use a controlled test environment.
+Itamae has three layers of tests.
 
-### How It Works
+### 1. Unit tests (`go test`)
 
-The test suite (`itamae/main_test.go`) implements:
-
-1. **Mock Environment Setup**: `TestMain()` function creates a temporary directory with mock commands
-2. **Command Interception**: System commands like `sudo`, `apt-get`, `nala` are replaced with logging scripts
-3. **Verification**: Tests verify that plugins call the correct commands by checking log files
-
-### Test Structure
+- **Installer engine** (`itamae/engine_test.go`): fake plugin scripts and a mocked `sudo` drive the `Installer` through every branch: repository setup, prerequisites, `nala` vs `apt-get`, batch install, the per-package fallback when a batch fails, post-install hooks, verification failures, manual plugins, cancellation and the plain-text reporter.
+- **Plugin scripts** (`itamae/main_test.go`): every embedded script runs its `install`, `remove`, `setup_repo` and `post_install` actions with `sudo`, `nala`, `apt-get`, `curl`, ... replaced by logging stubs. The test asserts the expected commands are issued, that unknown actions print usage, and that the catalogue of plugins (`expectedMetadata`) matches the scripts exactly, so adding or removing a script is always a deliberate change.
+- **CLI** (`cmd/*_test.go`): flag handling, input resolution from `--input` and the environment, and the headless error paths.
 
 ```go
-func TestMain(m *testing.M) {
-    // Setup mock environment
-    tempDir := setupMockEnvironment()
-    
-    // Run tests
-    code := m.Run()
-    
-    // Cleanup
-    os.RemoveAll(tempDir)
-    os.Exit(code)
+func TestInstallerBatchFailureFallsBackToIndividualInstalls(t *testing.T) {
+    env := newEngineEnv(t, true)              // mocked sudo + nala on PATH
+    plugins := []ToolPlugin{
+        env.plugin("goodpkg", "apt", 0, 0, "post"),
+        env.plugin("badpkg", "apt", 0, 0),    // the sudo mock fails for "badpkg"
+    }
+    sender, result := env.run(plugins, nil)
+    // goodpkg succeeds individually, badpkg is reported as failed
 }
+```
 
-func TestGitPlugin(t *testing.T) {
-    // Execute plugin script
-    output := executeScript("core/git.sh", "install")
-    
-    // Verify correct commands were called
-    assertContains(t, output, "apt-get install -y git")
-}
+### 2. install.sh end-to-end (`test/install-sh/test.sh`)
+
+A local HTTP server stands in for GitHub releases so every path of `install.sh` is exercised deterministically: fresh install, already up to date, upgrade, downgrade with `ITAMAE_VERSION`, replacing a binary with an unknown version, a failed download that keeps the previous binary, the non-interactive guidance, `ITAMAE_INSTALL_ARGS` running a real headless install, unsupported architectures and the prerequisite step.
+
+```bash
+test/install-sh/test.sh
+```
+
+### 3. Container matrix (`test/integration/`)
+
+The Integration workflow builds the binary once and then, for every combination of
+
+- distribution: `ubuntu:22.04`, `ubuntu:24.04`, `debian:12`, `debian:13`
+- package manager: `nala`, `apt-get`
+- category: `core`, `essentials`, `unverified`
+
+starts a fresh container with a regular user and passwordless sudo and runs `test/integration/run.sh`, which:
+
+1. installs or removes `nala` to set up the permutation
+2. runs `itamae install --category <c> --yes --plain` (with `--all` for unverified)
+3. runs `itamae check` and requires every installable tool to pass
+4. inspects the debug log to confirm the expected package manager was used
+5. removes every tool through its script and asserts `check()` fails afterwards
+
+Run one permutation locally with Docker:
+
+```bash
+docker build --build-arg BASE_IMAGE=debian:12 -t itamae-test -f test/integration/Dockerfile .
+go build -o dist/itamae .
+docker run --rm -e CATEGORY=essentials -e PKG_MANAGER=apt-get \
+  -v "$PWD:/src:ro" -v "$PWD/dist/itamae:/usr/local/bin/itamae:ro" \
+  itamae-test bash /src/test/integration/run.sh
 ```
 
 ## Testing Your Plugin
 
-When adding a new plugin, create a test that:
+When adding a new plugin:
 
-1. **Tests installation**: Verify `install` command works
-2. **Tests removal**: Verify `remove` command works
-3. **Tests detection**: Verify `check` command works
-4. **Tests repository setup**: If applicable, verify `setup_repo` works
-
-### Example Test
-
-```go
-func TestMyToolPlugin(t *testing.T) {
-    script := "unverified/mytool.sh"
-    
-    t.Run("Install", func(t *testing.T) {
-        output := executeScript(script, "install")
-        if !strings.Contains(output, "apt-get install -y mytool") {
-            t.Errorf("Expected install command, got: %s", output)
-        }
-    })
-    
-    t.Run("Remove", func(t *testing.T) {
-        output := executeScript(script, "remove")
-        if !strings.Contains(output, "apt-get purge -y mytool") {
-            t.Errorf("Expected purge command, got: %s", output)
-        }
-    })
-    
-    t.Run("Check", func(t *testing.T) {
-        // Mock successful check
-        output := executeScript(script, "check")
-        // Verify check logic
-    })
-}
-```
-
-## Manual Testing
-
-For thorough testing, use a virtual machine or container:
-
-### Using Docker
-
-```bash
-# Build test container
-docker build -t itamae-test .
-
-# Run installation
-docker run -it itamae-test bash
-./itamae install
-```
-
-### Using Vagrant
-
-```bash
-# Start Ubuntu VM
-vagrant up
-
-# SSH into VM
-vagrant ssh
-
-# Install and test Itamae
-curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
-itamae install
-```
-
-### Using Multipass
-
-```bash
-# Launch Ubuntu instance
-multipass launch -n itamae-test
-
-# Shell into instance
-multipass shell itamae-test
-
-# Test installation
-curl -fsSL https://raw.githubusercontent.com/yjmrobert/itamae/master/install.sh | bash
-itamae install
-```
+1. Add it to `expectedMetadata` and `pluginAssertions` in `itamae/main_test.go`; the suite fails for unregistered scripts.
+2. Run `go test ./itamae/ -run 'TestInstall|TestUninstall|TestMetadataParsing'`.
+3. Make sure `check()` fails after `remove()`; the container matrix asserts it.
+4. Run the relevant container permutation locally, or push and let the Integration workflow do it.
 
 ## Debugging Tests
 
-### Verbose Output
-
-Run with verbose flag:
-
 ```bash
-go test -v ./...
-```
-
-### Run Single Test
-
-```bash
-go test -v ./itamae -run TestGitPlugin
-```
-
-### Print Debug Info
-
-Add print statements in tests:
-
-```go
-func TestDebug(t *testing.T) {
-    output := executeScript("core/git.sh", "install")
-    t.Logf("Output: %s", output)
-}
+go test -v ./itamae -run TestInstall/install_git     # one script action
+go test -v ./itamae -run TestInstaller               # engine tests
+itamae logs                                          # after a real run
 ```
 
 ## Continuous Integration
 
-Tests run automatically on:
-- Pull requests
-- Commits to master branch
-- Release builds
-
-See `.github/workflows/` for CI configuration.
-
-## Best Practices
-
-1. **Test all plugin functions**: `install`, `remove`, `check`, and `setup_repo`
-2. **Verify command accuracy**: Ensure exact commands are called
-3. **Test error handling**: Verify plugins handle failures gracefully
-4. **Mock external dependencies**: Don't rely on network or system state
-5. **Keep tests fast**: Tests should complete quickly
-6. **Test edge cases**: Empty inputs, missing commands, permission errors
+- **CI** (`ci.yml`): gofmt, `go mod tidy` check, `go vet`, `go test -race`, golangci-lint, ShellCheck over every script, and a docs build. Runs on every push and pull request.
+- **Integration** (`integration.yml`): the container matrix and the `install.sh` suite. Runs on every push and pull request, weekly on a schedule to catch upstream changes, and on demand.
+- **Release** (`release.yml`): tests, then builds binaries for Linux and macOS when a `v*` tag is pushed.
 
 ## Linting
 
@@ -210,8 +128,11 @@ go fmt ./...
 # Run static analysis
 go vet ./...
 
-# Run golangci-lint (if installed)
+# Run golangci-lint (configuration in .golangci.yml)
 golangci-lint run
+
+# Lint the shell scripts
+shellcheck -S warning itamae/scripts/*/*.sh install.sh
 ```
 
 ## Pre-commit Checklist
@@ -221,9 +142,9 @@ Before committing:
 - [ ] All tests pass: `go test ./...`
 - [ ] Code is formatted: `go fmt ./...`
 - [ ] No vet warnings: `go vet ./...`
-- [ ] Plugin scripts have correct metadata
-- [ ] Plugin scripts use router pattern
-- [ ] New plugins have corresponding tests
+- [ ] Lint is clean: `golangci-lint run` and `shellcheck -S warning itamae/scripts/*/*.sh`
+- [ ] Plugin scripts have correct metadata and use the router pattern
+- [ ] New plugins are registered in `itamae/main_test.go`
 
 ## Next Steps
 

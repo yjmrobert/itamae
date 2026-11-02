@@ -1,152 +1,56 @@
 # Developer Guide
 
-This guide provides instructions for developers who want to add new tools to Itamae.
+This is a condensed guide for contributors. The full, maintained version lives in the documentation site under [`docs/developers/`](docs/developers/).
 
-## How It Works
+## Architecture
 
-Itamae uses a Go binary to orchestrate shell scripts organized into three directories:
-- **`scripts/core/`** - Essential development tools that are always installed together
-- **`scripts/essentials/`** - Common developer extras that are installed as a group
-- **`scripts/unverified/`** - Additional tools that users can selectively install
-
-Each script is a plugin that knows how to install and remove a specific piece of software. The Go binary embeds these scripts and provides a full-featured TUI (Terminal User Interface) built with the [Charm ecosystem](https://charm.sh/) (Bubbletea, Bubbles, Lipgloss, and Huh) that displays:
-- **Left pane**: Checklist of packages with real-time status updates (pending, running, success, error)
-- **Right pane**: Scrollable installation logs with color-coded output
-- **Bottom pane**: Error messages when failures occur
-
-The TUI uses the **Tokyo Night** color scheme for a modern, readable appearance.
-
-## Adding a New Plugin
-
-To add a new plugin, create a new shell script in either `scripts/core/` (for essential tools) or `scripts/unverified/` (for optional tools). The script must have the following structure:
-
-1.  **Metadata:** The script must start with a metadata block that provides information about the plugin.
-    *   `# NAME:` The name of the software.
-    *   `# DESCRIPTION:` A short description of the software.
-    *   `# INSTALL_METHOD:` The installation method: `apt`, `binary`, or `manual`.
-    *   `# PACKAGE_NAME:` (For `apt` plugins only) The actual package name in the APT repository.
-    *   `# REPO_SETUP:` (Optional, for APT plugins) The name of a function that adds custom repositories (e.g., `setup_repo`). This is called before the batch `apt-get update`.
-    *   `# POST_INSTALL:` (Optional) The name of a function to run after batch APT installation (e.g., `post_install`).
-    *   `# REQUIRES:` (Optional) Required user inputs in format `VAR_NAME|Prompt text` (can have multiple).
-
-2.  **`install()` function:** This function should contain the commands to install the software.
-    *   **Package Manager:** For APT-based tools, the `install()` function should prefer `nala` over `apt-get` if it is available. This function serves as a fallback for individual installations.
-    *   **Symlinks:** If a Debian/Ubuntu package uses a different binary name (e.g., `batcat`, `fd-find`), create a `post_install()` function that creates symlinks to the more common alias (e.g., `bat`, `fd`) in `$HOME/.local/bin`.
-
-3.  **`post_install()` function:** (Optional, for APT plugins) This function runs after batch installation to perform post-installation tasks like creating symlinks or configuration.
-
-4.  **`remove()` function:** This function should contain the commands to remove the software.
-
-5.  **`check()` function:** This function should return 0 if the software is installed, non-zero otherwise.
-
-6.  **Router:** The script must end with a `case` statement that calls the appropriate function based on the first argument (`$1`) passed to the script.
-
-### Batch Installation Optimization
-
-Itamae optimizes APT package installation by batching all APT-based tools into a single `nala install` or `apt-get install` command. The installation process follows three phases:
-
-**Phase 0: Repository Setup**
-- All plugins with `REPO_SETUP` metadata have their `setup_repo()` functions called sequentially
-- A single `nala update` or `apt-get update` is run after all repositories are added
-- This enables packages from custom repositories (GitHub CLI, Node.js, .NET, Java) to be installed in the batch phase
-
-**Phase 1: Batch APT Installation**
-- All APT packages (both standard and from custom repos) are installed in a single parallel command
-- Post-install tasks are run individually after batch installation completes
-- This significantly improves performance by resolving all dependencies in one pass
-
-**Phase 2: Individual Installation**
-- Binary and manual plugins are installed one at a time using their custom scripts
-
-Tools are automatically categorized by their `INSTALL_METHOD`:
-- **`apt`**: Batch installed with nala/apt-get, leveraging parallel capabilities
-- **`binary`**: Installed individually using their custom installation scripts
-- **`manual`**: Require manual installation by the user
-
-### Example: APT Plugin with Symlink
-
-```bash
-#!/bin/bash
-#
-# METADATA
-# NAME: bat (batcat)
-# DESCRIPTION: A 'cat' clone with syntax highlighting and Git integration.
-# INSTALL_METHOD: apt
-# PACKAGE_NAME: batcat
-# POST_INSTALL: post_install
-#
-
-post_install() {
-    # Create the 'bat' symlink that all tools expect
-    mkdir -p "$HOME/.local/bin"
-    ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
-    echo "✅ Created symlink: bat -> batcat"
-}
-
-install() {
-    echo "Installing bat..."
-    if command -v nala &> /dev/null; then
-        sudo nala install -y batcat
-    else
-        sudo apt-get install -y batcat
-    fi
-    post_install
-}
-
-remove() {
-    echo "Removing bat..."
-    sudo apt-get purge -y batcat
-    rm -f "$HOME/.local/bin/bat"
-    echo "✅ bat removed."
-}
-
-check() {
-    command -v bat &> /dev/null
-}
-
-# --- ROUTER ---
-case "$1" in
-    install) install ;;
-    remove) remove ;;
-    check) check ;;
-    post_install) post_install ;;
-    *) echo "Usage: $0 {install|remove|check|post_install}" && exit 1 ;;
-esac
+```
+main.go                 Entry point (cmd.Execute)
+cmd/                    Cobra commands, run through Charm Fang
+  root.go               Root command + fang.Execute (styled help, --version, man pages, completions)
+  install.go            itamae install (interactive or headless)
+  check.go              itamae check
+  list.go               itamae list
+  logs.go               itamae logs
+  version.go            itamae version
+itamae/
+  plugin.go             Plugin metadata parsing and loading of the embedded scripts
+  engine.go             Installer: phases, batching, fallback, verification (UI independent)
+  exec.go               Running scripts and package manager commands
+  run.go                TUI / plain-text front ends, PlainSender, PrintSummary
+  forms.go              Huh forms (category, multi-select, confirm, inputs)
+  tui_model.go/.._view.go  Bubble Tea v2 model and rendering
+  theme.go              Tokyo Night palette (Lip Gloss v2)
+  debug_logger.go       Timestamped debug log in /tmp/itamae-logs
+  scripts/{core,essentials,unverified}/*.sh   The plugins
+test/
+  integration/          Dockerfile + run.sh used by the Integration workflow
+  install-sh/           End-to-end tests for install.sh
 ```
 
-### Example: Simple APT Plugin
+The `Installer` in `engine.go` reports progress through the `Sender` interface. `*tea.Program` implements it for the TUI; `PlainSender` prints lines for `--plain`, CI and logs. Unit tests drive the installer with fake scripts and a mocked `sudo`.
+
+## Plugin contract
+
+A plugin is a bash script with a metadata header and four functions:
 
 ```bash
 #!/bin/bash
 #
 # METADATA
-# NAME: My Awesome Tool
-# DESCRIPTION: A really cool tool that does awesome things.
-# INSTALL_METHOD: apt
-# PACKAGE_NAME: my-awesome-tool
+# NAME: My Tool
+# DESCRIPTION: One line about the tool.
+# INSTALL_METHOD: apt            # apt | binary | manual
+# PACKAGE_NAME: my-tool          # apt only
+# REPO_SETUP: setup_repo         # optional, apt only
+# POST_INSTALL: post_install     # optional, apt only
+# REQUIRES: VAR|Prompt|default-command   # optional, repeatable
 #
 
-install() {
-    echo "Installing My Awesome Tool..."
-    if command -v nala &> /dev/null; then
-        sudo nala install -y my-awesome-tool
-    else
-        sudo apt-get install -y my-awesome-tool
-    fi
-    echo "✅ My Awesome Tool installed."
-}
+install() { ... }        # install the tool (used for binary/manual, and as the apt fallback)
+remove()  { ... }        # remove it again
+check()   { ... }        # exit 0 when the tool is usable
 
-remove() {
-    echo "Removing My Awesome Tool..."
-    sudo apt-get purge -y my-awesome-tool
-    echo "✅ My Awesome Tool removed."
-}
-
-check() {
-    command -v my-awesome-tool &> /dev/null
-}
-
-# --- ROUTER ---
 case "$1" in
     install) install ;;
     remove) remove ;;
@@ -155,206 +59,38 @@ case "$1" in
 esac
 ```
 
-### Example: Binary Plugin
+Rules of thumb:
+
+- Prefer `nala` and fall back to `apt-get` for APT installs.
+- Use `curl`, not `wget`, in `setup_repo()`: `curl`, `gnupg` and `ca-certificates` are guaranteed to be present before repository setup runs.
+- Detect the CPU architecture (`uname -m`) when downloading binaries; releases ship for amd64 and arm64.
+- Install user-level binaries into `~/.local/bin`; it is on `PATH` when scripts and `check()` run.
+- Install any extra tools your script needs (for example `unzip`) inside the script.
+- `check()` must fail after `remove()`; the integration tests assert this.
+
+After adding a script, register it in `itamae/main_test.go` (`expectedMetadata` and `pluginAssertions`). The tests run every script against mocked commands and fail for unknown plugins.
+
+## Development loop
 
 ```bash
-#!/bin/bash
-#
-# METADATA
-# NAME: My Binary Tool
-# DESCRIPTION: A tool installed from a binary release.
-# INSTALL_METHOD: binary
-#
-
-install() {
-    echo "Installing My Binary Tool..."
-    curl -L "https://example.com/tool.tar.gz" | sudo tar -xz -C /usr/local/bin
-    echo "✅ My Binary Tool installed."
-}
-
-remove() {
-    echo "Removing My Binary Tool..."
-    sudo rm /usr/local/bin/tool
-    echo "✅ My Binary Tool removed."
-}
-
-check() {
-    command -v tool &> /dev/null
-}
-
-# --- ROUTER ---
-case "$1" in
-    install) install ;;
-    remove) remove ;;
-    check) check ;;
-    *) echo "Usage: $0 {install|remove|check}" && exit 1 ;;
-esac
+go build ./... && go vet ./...
+go test -race ./...
+golangci-lint run
+shellcheck -S warning itamae/scripts/*/*.sh install.sh
+go run . install --category core --yes --plain      # headless run (needs sudo)
+test/install-sh/test.sh                             # install.sh end-to-end
 ```
 
-### Example: APT Plugin with Custom Repository
-
-For packages that need custom repositories (like GitHub CLI, Node.js, .NET, Java), add a `setup_repo()` function:
+The container matrix (`test/integration/run.sh`) can be run locally with Docker:
 
 ```bash
-#!/bin/bash
-#
-# METADATA
-# NAME: GitHub CLI
-# DESCRIPTION: Official GitHub command-line tool.
-# INSTALL_METHOD: apt
-# PACKAGE_NAME: gh
-# REPO_SETUP: setup_repo
-#
-
-setup_repo() {
-    echo "Setting up GitHub CLI repository..."
-    sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-    echo "✅ GitHub CLI repository configured."
-}
-
-install() {
-    echo "Installing GitHub CLI..."
-    if command -v nala &> /dev/null; then
-        sudo nala install -y gh
-    else
-        sudo apt-get install -y gh
-    fi
-    echo "✅ GitHub CLI installed."
-}
-
-remove() {
-    echo "Removing GitHub CLI..."
-    sudo apt-get purge -y gh
-    sudo rm -f /etc/apt/sources.list.d/github-cli.list
-    sudo rm -f /etc/apt/keyrings/githubcli-archive-keyring.gpg
-    echo "✅ GitHub CLI removed."
-}
-
-check() {
-    command -v gh &> /dev/null
-}
-
-# --- ROUTER ---
-case "$1" in
-    setup_repo) setup_repo ;;
-    install) install ;;
-    remove) remove ;;
-    check) check ;;
-    *) echo "Usage: $0 {setup_repo|install|remove|check}" && exit 1 ;;
-esac
+docker build --build-arg BASE_IMAGE=ubuntu:24.04 -t itamae-test -f test/integration/Dockerfile .
+go build -o dist/itamae .
+docker run --rm -e CATEGORY=core -e PKG_MANAGER=nala \
+  -v "$PWD:/src:ro" -v "$PWD/dist/itamae:/usr/local/bin/itamae:ro" \
+  itamae-test bash /src/test/integration/run.sh
 ```
 
-## TUI Architecture
+## Commits and releases
 
-The installation interface is built using the [Charm ecosystem](https://charm.sh/) with a multi-pane layout:
-
-### Components
-
-**Theme System** (`itamae/theme.go`)
-- Tokyo Night color palette with Lipgloss styles
-- Color-coded status indicators (pending: gray, running: blue, success: green, error: red)
-- Consistent styling across all panes
-
-**Bubbletea Model** (`itamae/tui_model.go`)
-- `InstallModel`: Main TUI state containing packages, logs, errors, and UI components
-- Message types: `PhaseStartMsg`, `PackageStartMsg`, `PackageCompleteMsg`, `LogMsg`, `ErrorMsg`, `SummaryMsg`
-- Implements `tea.Model` interface with `Init()`, `Update()`, and `View()` methods
-
-**View Rendering** (`itamae/tui_view.go`)
-- `renderChecklist()`: Left pane (30% width) showing package status with spinners
-- `renderLogs()`: Right pane (70% width) with scrollable, timestamped logs
-- `renderErrors()`: Bottom pane (5 lines) displaying recent errors when present
-- Bubbles viewports for smooth scrolling
-
-**Async Execution** (`itamae/executor.go`)
-- `ExecuteScriptAsyncCmd()`: Runs shell scripts and captures output
-- `ExecuteBatchAPTCmd()`: Executes parallel APT installations
-- Returns `tea.Cmd` to send messages back to TUI
-
-**Orchestration** (`itamae/tui_orchestrator.go`)
-- `RunInstallTUI()`: Entry point that initializes TUI and starts installation
-- `processInstallTUI()`: Coordinates three-phase installation and sends progress updates
-
-### User Interactions
-
-- **↑/↓ or j/k**: Scroll log pane
-- **PgUp/PgDown**: Page through logs
-- **q or Ctrl+C**: Exit (only after installation completes)
-
-The TUI automatically scrolls logs to show the latest output and highlights the currently installing package with a spinner.
-
-## Debug Logging
-
-Itamae automatically saves detailed debug logs to `/tmp/itamae-logs/` during every installation. These logs capture:
-- All commands executed during installation
-- Complete command output (stdout/stderr)
-- Phase transitions and timing information
-- Package status updates and errors
-- TUI lifecycle events
-
-### Viewing Logs
-
-Use the `itamae logs` command to view installation logs:
-
-```bash
-# View most recent log
-itamae logs
-
-# List all available logs
-itamae logs --list
-
-# View a specific log file
-itamae logs --file itamae-install-2024-01-15_14-30-45.log
-
-# Follow a log in real-time (useful for debugging)
-itamae logs --follow
-
-# Filter log lines containing specific text
-itamae logs --grep "error"
-itamae logs --grep "Phase 1"
-
-# Clean up old logs
-itamae logs --clean
-```
-
-### Log Format
-
-Log files use timestamped entries in the format:
-```
-[HH:MM:SS.mmm] Log message
-```
-
-The `itamae logs` command automatically colorizes output using the Tokyo Night theme:
-- Errors are highlighted in red
-- Success messages in green
-- Phase transitions in blue
-- Timestamps in dim gray
-
-For long logs, the command automatically uses a pager (like `less`) for easier navigation.
-
-### Debug Logging in Code
-
-The debug logging system is implemented in `itamae/debug_logger.go` and provides:
-
-- `InitDebugLog()`: Creates log directory and file with timestamp
-- `DebugLog(format, args...)`: Thread-safe logging with mutex protection
-- `CloseDebugLog()`: Closes file and prints location to stdout
-- `GetLogDirectory()`: Returns `/tmp/itamae-logs` path
-- `ListLogFiles()`: Returns sorted list of logs (newest first)
-- `GetMostRecentLog()`: Returns path to most recent log
-
-All logging is thread-safe using `sync.Mutex` to handle concurrent writes from goroutines.
-
-## Testing
-
-Unit tests for shell script plugins are written in Go (`main_test.go`). This approach was chosen as a compromise to full integration tests due to environment limitations. A `TestMain` function sets up a mock environment that replaces system commands (e.g., `sudo`, `apt-get`) with logging scripts. Tests then assert that the specific, correct install/remove commands are called by verifying the log file's contents.
-
-Before submitting a pull request, please run the linter and tests to ensure that your changes are correct and that you have not introduced any regressions.
-
-```bash
-go fmt ./...
-go vet ./...
-go test ./...
-```
+Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, ...). `./release.sh` derives the next version from the commits and pushes a tag; the Release workflow builds the binaries.
