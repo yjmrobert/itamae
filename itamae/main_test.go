@@ -68,7 +68,7 @@ var pluginAssertions = map[string]pluginAssertion{
 
 	// Unverified
 	"ansible":       {install: "pipx install", remove: "pipx uninstall ansible"},
-	"bin":           {install: "curl -sL", remove: "rm -f"},
+	"bin":           {install: "curl -fsSL https://api.github.com/repos/marcosnils/bin/releases/latest", remove: "rm -f"},
 	"btop":          {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
 	"btop-desktop":  {install: "sudo nala install -y btop", remove: "sudo apt-get purge -y btop"},
 	"cascadia-code": {install: "curl -fsSL https://github.com/microsoft/cascadia-code/releases/download", remove: "rm -f"},
@@ -86,7 +86,7 @@ var pluginAssertions = map[string]pluginAssertion{
 	"semgrep":       {install: "pipx install semgrep", remove: "pipx uninstall semgrep"},
 	"tldr":          {install: "curl -fsSL https://github.com/tealdeer-rs/tealdeer/releases/latest/download/tealdeer-linux-", remove: "rm -f"},
 	"vscode":        {install: "sudo apt-get install -y /tmp/vscode-itamae.deb", remove: "sudo apt-get purge -y code"},
-	"zellij":        {install: "curl -fsSL https://github.com/zellij-project/zellij/releases/latest/download/zellij-", remove: "sudo rm -f /usr/local/bin/zellij"},
+	"zellij":        {install: "curl -fsSL https://github.com/zellij-org/zellij/releases/latest/download/zellij-", remove: "sudo rm -f /usr/local/bin/zellij"},
 	"zsh":           {install: "sudo nala install -y zsh", remove: "sudo apt-get purge -y zsh"},
 }
 
@@ -105,7 +105,7 @@ var expectedMetadata = map[string]struct {
 	packageName string
 }{
 	// Core
-	"alacritty":           {"core", "apt", "alacritty"},
+	"alacritty":           {"core", "binary", ""},
 	"apt-transport-https": {"core", "apt", "apt-transport-https"},
 	"ca-certificates":     {"core", "apt", "ca-certificates"},
 	"curl":                {"core", "apt", "curl"},

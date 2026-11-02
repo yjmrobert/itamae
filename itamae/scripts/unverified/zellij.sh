@@ -18,8 +18,11 @@ install() {
     echo "Installing Zellij..."
     local arch
     arch=$(zellij_arch) || return 1
-    local zellij_url="https://github.com/zellij-project/zellij/releases/latest/download/zellij-${arch}-unknown-linux-musl.tar.gz"
-    curl -fsSL "$zellij_url" | sudo tar -xz -C /usr/local/bin zellij
+    local zellij_url="https://github.com/zellij-org/zellij/releases/latest/download/zellij-${arch}-unknown-linux-musl.tar.gz"
+    local tarball="/tmp/zellij-${arch}.tar.gz"
+    curl -fsSL "$zellij_url" -o "$tarball"
+    sudo tar -xzf "$tarball" -C /usr/local/bin zellij
+    rm -f "$tarball"
     echo "✅ Zellij installed."
 }
 
