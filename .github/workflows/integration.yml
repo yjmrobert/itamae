@@ -1,0 +1,114 @@
+name: Integration
+
+# Installs every plugin category for real, inside fresh containers of each
+# supported distribution, with both APT front ends itamae can use. Each job
+# runs "itamae install" headlessly, verifies every tool with "itamae check",
+# confirms the expected package manager was used, and then removes everything
+# again through the plugin scripts.
+
+on:
+  push:
+    branches: ['**']
+    tags-ignore: ['v*']
+  pull_request:
+  schedule:
+    # Weekly, so upstream repository or installer changes are caught early.
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build test binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Build linux/amd64 binary
+        run: |
+          mkdir -p dist
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+            -ldflags "-X github.com/yjmrobert/itamae/cmd.Version=v0.0.0-ci -X github.com/yjmrobert/itamae/cmd.GitCommit=${GITHUB_SHA::7}" \
+            -o dist/itamae .
+          dist/itamae version
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: itamae-linux-amd64
+          path: dist/itamae
+          retention-days: 3
+
+  containers:
+    name: ${{ matrix.category }} on ${{ matrix.image }} (${{ matrix.pkg_manager }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['ubuntu:22.04', 'ubuntu:24.04', 'debian:12', 'debian:13']
+        pkg_manager: [nala, apt-get]
+        category: [core, essentials, unverified]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: itamae-linux-amd64
+          path: dist
+
+      - name: Build test image
+        run: |
+          docker build \
+            --build-arg BASE_IMAGE=${{ matrix.image }} \
+            -t itamae-test \
+            -f test/integration/Dockerfile .
+
+      - name: Run installation
+        run: |
+          chmod +x dist/itamae
+          mkdir -p logs
+          docker run --rm \
+            -e CATEGORY=${{ matrix.category }} \
+            -e PKG_MANAGER=${{ matrix.pkg_manager }} \
+            -v "$PWD:/src:ro" \
+            -v "$PWD/dist/itamae:/usr/local/bin/itamae:ro" \
+            -v "$PWD/logs:/tmp/itamae-logs" \
+            itamae-test \
+            bash /src/test/integration/run.sh
+
+      - name: Upload itamae debug logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-${{ matrix.category }}-${{ matrix.pkg_manager }}-${{ matrix.image }}
+          path: logs
+          if-no-files-found: ignore
+          retention-days: 7
+
+  install-script:
+    name: install.sh end-to-end
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Run install.sh test suite
+        run: test/install-sh/test.sh
