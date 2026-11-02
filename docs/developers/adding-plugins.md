@@ -81,16 +81,16 @@ For tools available in APT repositories:
 install() {
     echo "Installing My Tool..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y my-tool
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y my-tool
     else
-        sudo apt-get install -y my-tool
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y my-tool
     fi
     echo "✅ My Tool installed."
 }
 
 remove() {
     echo "Removing My Tool..."
-    sudo apt-get purge -y my-tool
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y my-tool
     echo "✅ My Tool removed."
 }
 
@@ -139,16 +139,16 @@ setup_repo() {
 install() {
     echo "Installing GitHub CLI..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y gh
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y gh
     else
-        sudo apt-get install -y gh
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gh
     fi
     echo "✅ GitHub CLI installed."
 }
 
 remove() {
     echo "Removing GitHub CLI..."
-    sudo apt-get purge -y gh
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y gh
     sudo rm -f /etc/apt/sources.list.d/github-cli.list
     sudo rm -f /usr/share/keyrings/githubcli-archive-keyring.gpg
     echo "✅ GitHub CLI removed."
@@ -193,16 +193,16 @@ post_install() {
 install() {
     echo "Installing bat..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y bat
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y bat
     else
-        sudo apt-get install -y bat
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y bat
     fi
     post_install
 }
 
 remove() {
     echo "Removing bat..."
-    sudo apt-get purge -y bat
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y bat
     rm -f "$HOME/.local/bin/bat"
     echo "✅ bat removed."
 }
@@ -284,6 +284,7 @@ Itamae optimizes APT installations through batching:
 ## Best Practices
 
 - **Prefer `nala`, fall back to `apt-get`** in `install()` for APT tools; the batch phase does the same automatically.
+- **Always run package managers as `sudo env DEBIAN_FRONTEND=noninteractive ...`.** `sudo` resets the environment, so without this debconf stops on prompts (tzdata, keyboard-configuration) whenever itamae runs without a terminal.
 - **Use `curl` in `setup_repo()`**. `curl`, `gnupg` and `ca-certificates` are installed before repository setup runs, `wget` is not.
 - **Detect the architecture** with `uname -m` when downloading binaries. Releases ship for `amd64` and `arm64`; map to the upstream naming (`x86_64`/`aarch64`, `amd64`/`arm64`, `x64`/`arm64`) as needed.
 - **Install user binaries into `~/.local/bin`**. Itamae puts `~/.local/bin`, `~/.cargo/bin` and `~/.atuin/bin` on `PATH` when running scripts and `check()`.

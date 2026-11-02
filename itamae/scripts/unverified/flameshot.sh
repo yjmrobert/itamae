@@ -10,16 +10,16 @@
 install() {
     echo "Installing Flameshot..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y flameshot
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y flameshot
     else
-        sudo apt-get install -y flameshot
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y flameshot
     fi
     echo "✅ Flameshot installed."
 }
 
 remove() {
     echo "Removing Flameshot..."
-    sudo apt-get purge -y flameshot
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y flameshot
     echo "✅ Flameshot removed."
 }
 

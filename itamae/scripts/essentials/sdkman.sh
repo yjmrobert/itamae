@@ -14,9 +14,9 @@ ensure_deps() {
     if [ ${#missing[@]} -gt 0 ]; then
         echo "Installing dependencies: ${missing[*]}"
         if command -v nala &> /dev/null; then
-            sudo nala install -y "${missing[@]}"
+            sudo env DEBIAN_FRONTEND=noninteractive nala install -y "${missing[@]}"
         else
-            sudo apt-get install -y "${missing[@]}"
+            sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y "${missing[@]}"
         fi
     fi
 }

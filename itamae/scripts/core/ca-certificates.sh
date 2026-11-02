@@ -10,16 +10,16 @@
 install() {
     echo "Installing ca-certificates..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y ca-certificates
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y ca-certificates
     else
-        sudo apt-get install -y ca-certificates
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates
     fi
     echo "✅ ca-certificates installed."
 }
 
 remove() {
     echo "Removing ca-certificates..."
-    sudo apt-get purge -y ca-certificates
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y ca-certificates
     echo "✅ ca-certificates removed."
 }
 

@@ -111,9 +111,15 @@ func checkInstalled(ctx context.Context, plugin ToolPlugin, inputs map[string]st
 	return err == nil
 }
 
+// sudoPrefix is prepended to every privileged package manager call. sudo resets
+// the environment, so DEBIAN_FRONTEND has to be passed explicitly or debconf
+// blocks on prompts (tzdata, keyboard-configuration) in non-interactive runs.
+var sudoPrefix = []string{"env", "DEBIAN_FRONTEND=noninteractive"}
+
 // runSudo runs a privileged system command (package manager calls) through sudo, with
 // output captured to the debug log and optionally copied to out.
 func runSudo(ctx context.Context, out io.Writer, args ...string) error {
+	args = append(append([]string{}, sudoPrefix...), args...)
 	DebugLog("$ sudo %s", strings.Join(args, " "))
 	cmd := exec.CommandContext(ctx, "sudo", args...)
 	cmd.Env = scriptEnv(nil)

@@ -10,16 +10,16 @@
 install() {
     echo "Installing ncdu..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y ncdu
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y ncdu
     else
-        sudo apt-get install -y ncdu
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ncdu
     fi
     echo "✅ ncdu installed."
 }
 
 remove() {
     echo "Removing ncdu..."
-    sudo apt-get purge -y ncdu
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y ncdu
     echo "✅ ncdu removed."
 }
 

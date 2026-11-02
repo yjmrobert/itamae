@@ -10,16 +10,16 @@
 install() {
     echo "Installing python3-full..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y python3-full
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y python3-full
     else
-        sudo apt-get install -y python3-full
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y python3-full
     fi
     echo "✅ python3-full installed."
 }
 
 remove() {
     echo "Removing python3-full..."
-    sudo apt-get purge -y python3-full
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y python3-full
     echo "✅ python3-full removed."
 }
 

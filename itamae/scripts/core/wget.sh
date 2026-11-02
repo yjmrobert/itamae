@@ -10,16 +10,16 @@
 install() {
     echo "Installing wget..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y wget
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y wget
     else
-        sudo apt-get install -y wget
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y wget
     fi
     echo "✅ wget installed."
 }
 
 remove() {
     echo "Removing wget..."
-    sudo apt-get purge -y wget
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y wget
     echo "✅ wget removed."
 }
 

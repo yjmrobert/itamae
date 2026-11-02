@@ -24,16 +24,16 @@ post_install() {
 install() {
     echo "Installing bat..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y bat
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y bat
     else
-        sudo apt-get install -y bat
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y bat
     fi
     post_install
 }
 
 remove() {
     echo "Removing bat..."
-    sudo apt-get purge -y bat
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y bat
     rm -f "$BINDIR/bat"
     echo "✅ bat removed."
 }

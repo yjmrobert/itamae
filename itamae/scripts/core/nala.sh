@@ -9,14 +9,14 @@
 
 install() {
     echo "Installing nala..."
-    sudo apt-get update
-    sudo apt-get install -y nala
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get update
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y nala
     echo "✅ nala installed."
 }
 
 remove() {
     echo "Removing nala..."
-    sudo apt-get purge -y nala
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y nala
     echo "✅ nala removed."
 }
 

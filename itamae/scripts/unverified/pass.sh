@@ -10,16 +10,16 @@
 install() {
     echo "Installing pass..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y pass
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y pass
     else
-        sudo apt-get install -y pass
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y pass
     fi
     echo "✅ pass installed."
 }
 
 remove() {
     echo "Removing pass..."
-    sudo apt-get purge -y pass
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y pass
     echo "✅ pass removed."
 }
 

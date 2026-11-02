@@ -10,16 +10,16 @@
 install() {
     echo "Installing WireGuard tools..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y wireguard-tools
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y wireguard-tools
     else
-        sudo apt-get install -y wireguard-tools
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y wireguard-tools
     fi
     echo "✅ WireGuard tools installed."
 }
 
 remove() {
     echo "Removing WireGuard tools..."
-    sudo apt-get purge -y wireguard-tools
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y wireguard-tools
     echo "✅ WireGuard tools removed."
 }
 

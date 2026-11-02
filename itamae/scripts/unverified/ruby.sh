@@ -10,16 +10,16 @@
 install() {
     echo "Installing Ruby..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y ruby-full
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y ruby-full
     else
-        sudo apt-get install -y ruby-full
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y ruby-full
     fi
     echo "✅ Ruby installed."
 }
 
 remove() {
     echo "Removing Ruby..."
-    sudo apt-get purge -y ruby-full ruby
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y ruby-full ruby
     echo "✅ Ruby removed."
 }
 

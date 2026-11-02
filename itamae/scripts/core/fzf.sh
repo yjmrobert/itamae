@@ -10,16 +10,16 @@
 install() {
     echo "Installing fzf..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y fzf
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y fzf
     else
-        sudo apt-get install -y fzf
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y fzf
     fi
     echo "✅ fzf installed."
 }
 
 remove() {
     echo "Removing fzf..."
-    sudo apt-get purge -y fzf
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y fzf
     echo "✅ fzf removed."
 }
 

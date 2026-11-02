@@ -11,6 +11,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+// sudoEnv is how every package manager call shows up in the mock sudo log.
+const sudoEnv = "sudo env DEBIAN_FRONTEND=noninteractive "
+
 // recordingSender collects every message the installer sends.
 type recordingSender struct {
 	msgs []tea.Msg
@@ -165,8 +168,8 @@ func TestInstallerHappyPath(t *testing.T) {
 	// Phase ordering: repo setup -> nala update -> batch install -> post install -> checks -> binary.
 	order := []string{
 		"gitx setup_repo hello",
-		"sudo nala update",
-		"sudo nala install -y gitx jqx",
+		sudoEnv + "nala update",
+		sudoEnv + "nala install -y gitx jqx",
 		"gitx post_install hello",
 		"gitx check hello",
 		"jqx check hello",
@@ -209,7 +212,7 @@ func TestInstallerFallsBackToAptGetWithoutNala(t *testing.T) {
 	if !result.OK() {
 		t.Fatalf("expected success, got %+v\n%s", result, strings.Join(cmds, "\n"))
 	}
-	if indexOf(cmds, "sudo apt-get update") < 0 || indexOf(cmds, "sudo apt-get install -y jqx") < 0 {
+	if indexOf(cmds, sudoEnv+"apt-get update") < 0 || indexOf(cmds, sudoEnv+"apt-get install -y jqx") < 0 {
 		t.Errorf("expected apt-get commands, got:\n%s", strings.Join(cmds, "\n"))
 	}
 	if indexOf(cmds, "sudo nala") >= 0 {
@@ -233,10 +236,10 @@ func TestInstallerBatchFailureFallsBackToIndividualInstalls(t *testing.T) {
 	if got := strings.Join(result.Failed, ","); got != "BADPKG" {
 		t.Errorf("failed = %q, want BADPKG", got)
 	}
-	if indexOf(cmds, "sudo nala install -y goodpkg badpkg") < 0 {
+	if indexOf(cmds, sudoEnv+"nala install -y goodpkg badpkg") < 0 {
 		t.Error("batch install should have been attempted first")
 	}
-	if indexOf(cmds, "sudo nala install -y goodpkg") < 0 || indexOf(cmds, "sudo nala install -y badpkg") < 0 {
+	if indexOf(cmds, sudoEnv+"nala install -y goodpkg") < 0 || indexOf(cmds, sudoEnv+"nala install -y badpkg") < 0 {
 		t.Errorf("each package should be retried individually:\n%s", strings.Join(cmds, "\n"))
 	}
 	if indexOf(cmds, "goodpkg post_install") < 0 {
@@ -310,7 +313,7 @@ func TestInstallerRepoSetupFailureFailsAptOnly(t *testing.T) {
 	if got := strings.Join(result.Successful, ","); got != "BINX" {
 		t.Errorf("binary plugins must still install, successful = %q", got)
 	}
-	if indexOf(cmds, "sudo nala install") >= 0 {
+	if indexOf(cmds, sudoEnv+"nala install") >= 0 {
 		t.Error("no APT install may run after repository setup fails")
 	}
 }
@@ -327,8 +330,8 @@ func TestInstallerInstallsMissingPrerequisites(t *testing.T) {
 	if !result.OK() {
 		t.Fatalf("expected success: %+v\n%s", result, strings.Join(cmds, "\n"))
 	}
-	update := indexOf(cmds, "sudo apt-get update")
-	prereq := indexOf(cmds, "sudo apt-get install -y curl gnupg")
+	update := indexOf(cmds, sudoEnv+"apt-get update")
+	prereq := indexOf(cmds, sudoEnv+"apt-get install -y curl gnupg")
 	repo := indexOf(cmds, "gitx setup_repo")
 	if update < 0 || prereq < 0 || repo < 0 || update >= prereq || prereq >= repo {
 		t.Errorf("prerequisites must be installed before repository setup:\n%s", strings.Join(cmds, "\n"))

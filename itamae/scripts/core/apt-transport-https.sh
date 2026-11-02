@@ -10,16 +10,16 @@
 install() {
     echo "Installing apt-transport-https..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y apt-transport-https
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y apt-transport-https
     else
-        sudo apt-get install -y apt-transport-https
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https
     fi
     echo "✅ apt-transport-https installed."
 }
 
 remove() {
     echo "Removing apt-transport-https..."
-    sudo apt-get purge -y apt-transport-https
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y apt-transport-https
     echo "✅ apt-transport-https removed."
 }
 

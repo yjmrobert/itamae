@@ -10,16 +10,16 @@
 install() {
     echo "Installing gnupg..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y gnupg
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y gnupg
     else
-        sudo apt-get install -y gnupg
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg
     fi
     echo "✅ gnupg installed."
 }
 
 remove() {
     echo "Removing gnupg..."
-    sudo apt-get purge -y gnupg
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y gnupg
     echo "✅ gnupg removed."
 }
 

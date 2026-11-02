@@ -10,16 +10,16 @@
 install() {
     echo "Installing Rofi..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y rofi
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y rofi
     else
-        sudo apt-get install -y rofi
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y rofi
     fi
     echo "✅ Rofi installed."
 }
 
 remove() {
     echo "Removing Rofi..."
-    sudo apt-get purge -y rofi
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y rofi
     echo "✅ Rofi removed."
 }
 

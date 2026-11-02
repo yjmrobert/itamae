@@ -62,6 +62,7 @@ esac
 Rules of thumb:
 
 - Prefer `nala` and fall back to `apt-get` for APT installs.
+- Run package managers as `sudo env DEBIAN_FRONTEND=noninteractive ...`; `sudo` drops the variable otherwise and debconf blocks on prompts in non-interactive runs.
 - Use `curl`, not `wget`, in `setup_repo()`: `curl`, `gnupg` and `ca-certificates` are guaranteed to be present before repository setup runs.
 - Detect the CPU architecture (`uname -m`) when downloading binaries; releases ship for amd64 and arm64.
 - Install user-level binaries into `~/.local/bin`; it is on `PATH` when scripts and `check()` run.

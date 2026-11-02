@@ -10,16 +10,16 @@
 install() {
     echo "Installing Dunst..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y dunst
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y dunst
     else
-        sudo apt-get install -y dunst
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y dunst
     fi
     echo "✅ Dunst installed."
 }
 
 remove() {
     echo "Removing Dunst..."
-    sudo apt-get purge -y dunst
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y dunst
     echo "✅ Dunst removed."
 }
 

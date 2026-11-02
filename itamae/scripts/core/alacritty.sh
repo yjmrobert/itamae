@@ -23,9 +23,9 @@ apt_has_candidate() {
 
 apt_install() {
     if command -v nala &> /dev/null; then
-        sudo nala install -y "$@"
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y "$@"
     else
-        sudo apt-get install -y "$@"
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y "$@"
     fi
 }
 
@@ -38,8 +38,8 @@ install() {
         if ! command -v add-apt-repository &> /dev/null; then
             apt_install software-properties-common || return 1
         fi
-        sudo add-apt-repository -y ppa:aslatter/ppa || return 1
-        sudo apt-get update
+        sudo env DEBIAN_FRONTEND=noninteractive add-apt-repository -y ppa:aslatter/ppa || return 1
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get update
         apt_install alacritty || return 1
     else
         echo "❌ alacritty is not available from the package repositories on this system." >&2
@@ -50,7 +50,7 @@ install() {
 
 remove() {
     echo "Removing Alacritty..."
-    sudo apt-get purge -y alacritty
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y alacritty
     if ls /etc/apt/sources.list.d/aslatter-ubuntu-ppa-* &> /dev/null; then
         sudo rm -f /etc/apt/sources.list.d/aslatter-ubuntu-ppa-*
     fi

@@ -10,16 +10,16 @@
 install() {
     echo "Installing Meld..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y meld
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y meld
     else
-        sudo apt-get install -y meld
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y meld
     fi
     echo "✅ Meld installed."
 }
 
 remove() {
     echo "Removing Meld..."
-    sudo apt-get purge -y meld
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y meld
     echo "✅ Meld removed."
 }
 

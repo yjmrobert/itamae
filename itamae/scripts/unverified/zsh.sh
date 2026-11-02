@@ -10,9 +10,9 @@
 install() {
     echo "Installing Zsh..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y zsh
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y zsh
     else
-        sudo apt-get install -y zsh
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y zsh
     fi
     echo "✅ Zsh installed."
     echo "Run 'chsh -s $(which zsh)' to make it your default."
@@ -20,7 +20,7 @@ install() {
 
 remove() {
     echo "Removing Zsh..."
-    sudo apt-get purge -y zsh
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y zsh
     echo "✅ Zsh removed."
 }
 

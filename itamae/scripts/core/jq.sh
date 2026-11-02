@@ -10,16 +10,16 @@
 install() {
     echo "Installing jq..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y jq
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y jq
     else
-        sudo apt-get install -y jq
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y jq
     fi
     echo "✅ jq installed."
 }
 
 remove() {
     echo "Removing jq..."
-    sudo apt-get purge -y jq
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y jq
     echo "✅ jq removed."
 }
 

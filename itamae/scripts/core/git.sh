@@ -11,9 +11,9 @@
 install() {
     echo "Installing Git..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y git
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y git
     else
-        sudo apt-get install -y git
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y git
     fi
 
     if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then
@@ -29,7 +29,7 @@ install() {
 
 remove() {
     echo "Removing Git..."
-    sudo apt-get purge -y git
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y git
     echo "✅ Git removed."
 }
 

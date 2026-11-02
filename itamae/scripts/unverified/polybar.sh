@@ -10,16 +10,16 @@
 install() {
     echo "Installing Polybar..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y polybar
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y polybar
     else
-        sudo apt-get install -y polybar
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y polybar
     fi
     echo "✅ Polybar installed."
 }
 
 remove() {
     echo "Removing Polybar..."
-    sudo apt-get purge -y polybar
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y polybar
     echo "✅ Polybar removed."
 }
 

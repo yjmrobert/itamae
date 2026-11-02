@@ -10,16 +10,16 @@
 install() {
     echo "Installing curl..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y curl
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y curl
     else
-        sudo apt-get install -y curl
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y curl
     fi
     echo "✅ curl installed."
 }
 
 remove() {
     echo "Removing curl..."
-    sudo apt-get purge -y curl
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y curl
     echo "✅ curl removed."
 }
 

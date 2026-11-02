@@ -10,16 +10,16 @@
 install() {
     echo "Installing httpie..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y httpie
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y httpie
     else
-        sudo apt-get install -y httpie
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y httpie
     fi
     echo "✅ httpie installed."
 }
 
 remove() {
     echo "Removing httpie..."
-    sudo apt-get purge -y httpie
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y httpie
     echo "✅ httpie removed."
 }
 

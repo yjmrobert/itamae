@@ -33,7 +33,7 @@ setup_repo() {
     version_id=$(os_version_id)
     echo "Setting up Microsoft repository for ${id} ${version_id}..."
     curl -fsSL "https://packages.microsoft.com/config/${id}/${version_id}/packages-microsoft-prod.deb" -o /tmp/packages-microsoft-prod.deb
-    sudo dpkg -i /tmp/packages-microsoft-prod.deb > /dev/null
+    sudo env DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/packages-microsoft-prod.deb > /dev/null
     rm -f /tmp/packages-microsoft-prod.deb
     echo "✅ Microsoft repository configured."
 }
@@ -41,18 +41,18 @@ setup_repo() {
 install() {
     echo "Installing .NET SDK 8.0..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y dotnet-sdk-8.0
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y dotnet-sdk-8.0
     else
-        sudo apt-get install -y dotnet-sdk-8.0
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0
     fi
     echo "✅ .NET SDK 8.0 installed."
 }
 
 remove() {
     echo "Removing .NET SDK 8.0..."
-    sudo apt-get purge -y dotnet-sdk-8.0
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y dotnet-sdk-8.0
     if [ "$(os_id)" != "ubuntu" ]; then
-        sudo apt-get purge -y packages-microsoft-prod 2>/dev/null || true
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y packages-microsoft-prod 2>/dev/null || true
         sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
         sudo rm -f /etc/apt/trusted.gpg.d/microsoft.gpg
     fi

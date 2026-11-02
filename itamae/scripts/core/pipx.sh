@@ -10,9 +10,9 @@
 install() {
     echo "Installing pipx..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y pipx
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y pipx
     else
-        sudo apt-get install -y pipx
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y pipx
     fi
     pipx ensurepath
     echo "✅ pipx installed."
@@ -20,7 +20,7 @@ install() {
 
 remove() {
     echo "Removing pipx..."
-    sudo apt-get purge -y pipx
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y pipx
     echo "✅ pipx removed."
 }
 

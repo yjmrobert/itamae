@@ -10,16 +10,16 @@
 install() {
     echo "Installing GNU Stow..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y stow
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y stow
     else
-        sudo apt-get install -y stow
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y stow
     fi
     echo "✅ GNU Stow installed."
 }
 
 remove() {
     echo "Removing GNU Stow..."
-    sudo apt-get purge -y stow
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y stow
     echo "✅ GNU Stow removed."
 }
 

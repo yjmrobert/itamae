@@ -19,14 +19,14 @@ install() {
     local arch
     arch=$(vscode_arch) || return 1
     curl -fL "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-${arch}" -o "/tmp/vscode-itamae.deb"
-    sudo apt-get install -y "/tmp/vscode-itamae.deb"
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y "/tmp/vscode-itamae.deb"
     rm -f "/tmp/vscode-itamae.deb"
     echo "✅ Visual Studio Code installed."
 }
 
 remove() {
     echo "Removing Visual Studio Code..."
-    sudo apt-get purge -y code
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y code
     echo "✅ Visual Studio Code removed."
 }
 

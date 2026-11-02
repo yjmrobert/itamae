@@ -116,10 +116,11 @@ if [ -z "$LOG" ]; then
     fail "no debug log was written to /tmp/itamae-logs"
 else
     echo "Debug log: $LOG ($(wc -l < "$LOG") lines)"
-    if grep -q "\$ sudo ${PKG_MANAGER} install" "$LOG" || grep -q "\$ sudo ${PKG_MANAGER} update" "$LOG"; then
+    PM_RE="\$ sudo env DEBIAN_FRONTEND=noninteractive ${PKG_MANAGER} \(install\|update\)"
+    if grep -q "$PM_RE" "$LOG"; then
         echo "✅ ${PKG_MANAGER} was used for package operations"
-    elif grep -q "\$ sudo nala\|\$ sudo apt-get install" "$LOG"; then
-        fail "expected ${PKG_MANAGER} to be used, log shows: $(grep -o '\$ sudo [a-z-]* \(install\|update\)' "$LOG" | sort -u | tr '\n' ' ')"
+    elif grep -q "\$ sudo env DEBIAN_FRONTEND=noninteractive \(nala\|apt-get\) install" "$LOG"; then
+        fail "expected ${PKG_MANAGER} to be used, log shows: $(grep -o '\$ sudo env DEBIAN_FRONTEND=noninteractive [a-z-]* \(install\|update\)' "$LOG" | sort -u | tr '\n' ' ')"
     else
         echo "ℹ no APT operations in this category"
     fi

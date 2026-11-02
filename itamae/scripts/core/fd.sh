@@ -19,16 +19,16 @@ install() {
     echo "Installing fd..."
     # Debian/Ubuntu package it as 'fd-find'
     if command -v nala &> /dev/null; then
-        sudo nala install -y fd-find
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y fd-find
     else
-        sudo apt-get install -y fd-find
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y fd-find
     fi
     post_install
 }
 
 remove() {
     echo "Removing fd..."
-    sudo apt-get purge -y fd-find
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y fd-find
     rm -f "$HOME/.local/bin/fd"
     echo "✅ fd removed."
 }

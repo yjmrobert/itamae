@@ -37,9 +37,9 @@ install() {
     echo "Installing lsd..."
     if apt_has_candidate lsd; then
         if command -v nala &> /dev/null; then
-            sudo nala install -y lsd
+            sudo env DEBIAN_FRONTEND=noninteractive nala install -y lsd
         else
-            sudo apt-get install -y lsd
+            sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y lsd
         fi
     else
         echo "lsd is not in the distribution repositories, using the GitHub release..."
@@ -53,7 +53,7 @@ install() {
         arch=$(deb_arch)
         deb="/tmp/lsd_${version}_${arch}.deb"
         curl -fsSL "https://github.com/lsd-rs/lsd/releases/download/v${version}/lsd_${version}_${arch}.deb" -o "$deb"
-        sudo apt-get install -y "$deb"
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y "$deb"
         rm -f "$deb"
     fi
     echo "✅ lsd installed."
@@ -61,7 +61,7 @@ install() {
 
 remove() {
     echo "Removing lsd..."
-    sudo apt-get purge -y lsd
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y lsd
     echo "✅ lsd removed."
 }
 

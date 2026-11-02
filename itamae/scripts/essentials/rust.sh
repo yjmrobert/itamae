@@ -11,9 +11,9 @@ ensure_deps() {
     if ! command -v cc &> /dev/null; then
         echo "Installing build-essential (C toolchain for the Rust linker)..."
         if command -v nala &> /dev/null; then
-            sudo nala install -y build-essential
+            sudo env DEBIAN_FRONTEND=noninteractive nala install -y build-essential
         else
-            sudo apt-get install -y build-essential
+            sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential
         fi
     fi
 }

@@ -22,16 +22,16 @@ setup_repo() {
 install() {
     echo "Installing Java (Temurin)..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y temurin-21-jdk
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y temurin-21-jdk
     else
-        sudo apt-get install -y temurin-21-jdk
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y temurin-21-jdk
     fi
     echo "✅ Java (Temurin) installed."
 }
 
 remove() {
     echo "Removing Java (Temurin)..."
-    sudo apt-get purge -y temurin-21-jdk
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y temurin-21-jdk
     sudo rm -f /etc/apt/sources.list.d/adoptium.list
     sudo rm -f /etc/apt/keyrings/adoptium.asc
     echo "✅ Java (Temurin) removed."

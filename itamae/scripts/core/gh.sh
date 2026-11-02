@@ -20,16 +20,16 @@ setup_repo() {
 install() {
     echo "Installing GitHub CLI..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y gh
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y gh
     else
-        sudo apt-get install -y gh
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gh
     fi
     echo "✅ GitHub CLI installed."
 }
 
 remove() {
     echo "Removing GitHub CLI..."
-    sudo apt-get purge -y gh
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y gh
     sudo rm -f /etc/apt/sources.list.d/github-cli.list
     sudo rm -f /etc/apt/keyrings/githubcli-archive-keyring.gpg
     echo "✅ GitHub CLI removed."

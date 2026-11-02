@@ -11,16 +11,16 @@ install() {
     echo "Installing btop-desktop..."
     # btop is in modern repos
     if command -v nala &> /dev/null; then
-        sudo nala install -y btop
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y btop
     else
-        sudo apt-get install -y btop
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y btop
     fi
     echo "✅ btop-desktop installed."
 }
 
 remove() {
     echo "Removing btop-desktop..."
-    sudo apt-get purge -y btop
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y btop
     echo "✅ btop-desktop removed."
 }
 

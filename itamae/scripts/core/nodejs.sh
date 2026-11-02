@@ -17,16 +17,16 @@ setup_repo() {
 install() {
     echo "Installing Node.js..."
     if command -v nala &> /dev/null; then
-        sudo nala install -y nodejs
+        sudo env DEBIAN_FRONTEND=noninteractive nala install -y nodejs
     else
-        sudo apt-get install -y nodejs
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
     fi
     echo "✅ Node.js installed."
 }
 
 remove() {
     echo "Removing Node.js..."
-    sudo apt-get purge -y nodejs
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get purge -y nodejs
     sudo rm -f /etc/apt/sources.list.d/nodesource.list*
     sudo rm -f /etc/apt/keyrings/nodesource.gpg
     echo "✅ Node.js removed."
