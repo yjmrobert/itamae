@@ -78,7 +78,9 @@ jobs:
       - name: Run installation
         run: |
           chmod +x dist/itamae
-          mkdir -p logs
+          # The container user has a different uid than the runner; make the
+          # log volume writable so itamae can create its debug log there.
+          mkdir -p logs && chmod 777 logs
           docker run --rm \
             -e CATEGORY=${{ matrix.category }} \
             -e PKG_MANAGER=${{ matrix.pkg_manager }} \

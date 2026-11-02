@@ -22,6 +22,10 @@ SCRIPT_DIR="${SRC}/itamae/scripts/${CATEGORY}"
 # installed and verified but never removed.
 PROTECTED_FROM_REMOVAL="apt-transport-https ca-certificates curl gnupg python3-full wget"
 
+# Scripts installed by itamae land in these user-level directories; itamae puts
+# them on PATH for its own checks, so the harness must see them too.
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.atuin/bin:$PATH"
+
 failures=()
 
 section() {

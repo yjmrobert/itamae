@@ -16,7 +16,11 @@ install() {
 
 remove() {
     echo "Removing Starship..."
-    sh -c 'rm "$(command -v starship)"'
+    local bin
+    bin=$(command -v starship || true)
+    if [ -n "$bin" ]; then
+        sudo rm -f "$bin"
+    fi
     echo "✅ Starship removed."
 }
 

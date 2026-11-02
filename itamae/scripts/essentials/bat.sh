@@ -8,7 +8,16 @@
 # POST_INSTALL: post_install
 #
 
+BINDIR="$HOME/.local/bin"
+
 post_install() {
+    # Debian and Ubuntu install the binary as 'batcat' to avoid a name clash;
+    # provide the 'bat' name everyone expects.
+    if ! command -v bat &> /dev/null && command -v batcat &> /dev/null; then
+        mkdir -p "$BINDIR"
+        ln -sf "$(command -v batcat)" "$BINDIR/bat"
+        echo "✅ Created symlink: bat -> batcat"
+    fi
     echo "✅ bat installed successfully"
 }
 
@@ -25,6 +34,7 @@ install() {
 remove() {
     echo "Removing bat..."
     sudo apt-get purge -y bat
+    rm -f "$BINDIR/bat"
     echo "✅ bat removed."
 }
 

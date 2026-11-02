@@ -9,12 +9,20 @@
 install() {
     echo "Installing Atuin..."
     curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash
+    echo "✅ Atuin installed."
 }
 
 remove() {
     echo "Removing Atuin..."
-    # As of 2024-05-21, the Atuin installer supports an uninstall command.
-    curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash -s -- --uninstall
+    # The installer places everything under ~/.atuin and sources ~/.atuin/bin/env
+    # from the shell rc files; undo both.
+    rm -rf "$HOME/.atuin"
+    for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
+        if [ -f "$rc" ]; then
+            sed -i '/\.atuin\/bin\/env/d' "$rc"
+        fi
+    done
+    echo "✅ Atuin removed."
 }
 
 check() {
