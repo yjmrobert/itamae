@@ -43,6 +43,11 @@ func EnsureSudoAccess() error {
 func RunInstallTUI(ctx context.Context, plugins []ToolPlugin, inputs map[string]string) (InstallResult, error) {
 	DebugLog("RunInstallTUI started with %d plugins", len(plugins))
 
+	// Closing the TUI early cancels the installer so no command keeps running
+	// behind the user's back.
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	model := NewInstallModel(plugins)
 	p := tea.NewProgram(model, tea.WithContext(ctx))
 
@@ -54,10 +59,12 @@ func RunInstallTUI(ctx context.Context, plugins []ToolPlugin, inputs map[string]
 
 	finalModel, err := p.Run()
 	if err != nil {
+		cancel()
 		return InstallResult{}, fmt.Errorf("TUI failed: %w", err)
 	}
 	if m, ok := finalModel.(InstallModel); ok && !m.complete {
 		DebugLog("TUI closed before the installation finished")
+		cancel()
 		return InstallResult{}, ErrCancelled
 	}
 
